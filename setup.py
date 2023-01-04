@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='EmpiricalDynamics',
-      version='0.1.1',
+      version='0.1.2',
       description='Modelling tools for nonlinear state space reconstruction analysis',
       packages=['edynamics'],
       author='Patrick Mahon',
