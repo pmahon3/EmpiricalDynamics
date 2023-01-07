@@ -7,7 +7,7 @@ from scipy.linalg import pinv
 from scipy.sparse.csgraph import shortest_path
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
-from Code.src.main.python.EmpiricalDynamics.edynamics.modelling_tools.blocks.Block import Block
+from src.edynamics.modelling_tools.blocks.Block import Block
 
 np.seterr(divide='ignore', invalid='ignore')
 

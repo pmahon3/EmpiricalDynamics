@@ -21,7 +21,7 @@ setup(
     long_description_content_type="text/markdown",
     long_description=long_description,
     packages=find_packages(),
-    install_requires=['numpy', 'pandas'],
+    install_requires=['numpy', 'pandas', 'scipy', 'scikit-learn'],
     keywords=['python', 'edm', 'time series', 'forecasting', 'empirical dynamics'],
     classifiers=[
         "Development Status :: 1 - Planning",
