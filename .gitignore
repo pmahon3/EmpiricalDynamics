@@ -1,1 +1,3 @@
-edynamics.egg-info 
+src/edynamics.egg-info
+test/*
+chatGPT_conversations/*

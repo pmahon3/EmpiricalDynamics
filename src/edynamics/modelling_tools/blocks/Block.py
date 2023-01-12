@@ -5,10 +5,12 @@ import numpy as np
 
 from scipy.spatial import cKDTree
 from scipy.spatial.distance import pdist
+from scipy.spatial import ConvexHull
+from scipy.spatial import Delaunay
 
 from collections import namedtuple
 
-from src.edynamics.modelling_tools.data_types.Lag import Lag
+from edynamics.modelling_tools.data_types.Lag import Lag
 
 
 class Block:
@@ -19,7 +21,6 @@ class Block:
                  frequency: pd.DateOffset,
                  lags: [Lag],
                  ):
-
         """
         Block defines a coordinate delay embedding of arbitrary lags from a given time series. It also defines basic
         operations on delay embeddings required for prediction schemes.
@@ -44,7 +45,12 @@ class Block:
         #: np.array: the l2 distances between all pairs of embedded points.  The distance between the ith and jth point
         # is at location X[m * i + j - ((i + 2) * (i + 1)) // 2], where m is the number of points.
         self.pairwise_distances: np.ndarray = None
-
+        #: convex_hull: the convex hull of the library points, useful when trying to find the minimal bounding simplex
+        # in the library points for a given point
+        self._convex_hull: ConvexHull = None
+        # delaunay_triangulation: the delaunay triangulation for the library points, useful when trying to find the
+        # minimal bounding simplex in the library points for a given point
+        self._delaunay_triangulation = None
     # PUBLIC
     def compile(self, mask_function=None) -> None:
         """
@@ -73,7 +79,7 @@ class Block:
         points = pd.DataFrame(index=times, columns=[lag.lagged_name for lag in self.lags],
                               dtype=float)
         for time in points.index:
-            points.loc[time] = [self.series.loc[time + self.frequency * lag.tau] for lag in self.lags]
+            points.loc[time] = [self.series.loc[time + self.frequency * lag.tau].values[0] for lag in self.lags]
         return points
 
     # Setters
@@ -102,48 +108,38 @@ class Block:
             self.frame = self.frame.loc[self.frame.apply(lambda x: mask_function(x.name), axis=1)]
         self.dimension = len(self.lags)
         self.frame.dropna(inplace=True)
+        self._convex_hull = ConvexHull(self.frame)
+        self._delaunay_triangulation = Delaunay(self.frame)
 
     def _compute_pairwise_distances(self):
         self._pairwise_distances = pdist(self.frame.values)
 
-    def _get_homogeneous_barycentric_coordinates(self, point: np.array) -> [[int], [float]]:
+    def _get_simplex(self, points: [np.array]) -> [[int], [float]]:
         """
-        @param point: the point for which we want to find the homogenous barycentric coordinates using it's k nearest
-        neighbours.
-        @return: a list of two lists where the first are the integer indices of the minimal simplex and the second are
-        the corresponding barycentric weights
+        @param points: the points for which we want to find minimal bounding simplex for. If a bounding simplex is not
+        available then use the k nearest neighbours where k = n + 1 and n is the dimension of the embedding.
+        @return: a list of the indices of the minimal simplex
         """
-        # This works, for dimension n, by finding the n+1 nearest neighbours of the indexed point, p, using a KDTree,
-        # and seeing whether the point is contained in the simplex formed by those neighbours. To determine this, the
-        # barycentric coordinates of p with respect to the nearest neighbours is computed and if all weights are
-        # positive, the point is in the simplex. If not the process is repeated with each nearest neighbour replaced
-        # by the next closest neighbour until a bounding simplex for p is found. See the following for more details:
-        #   https://math.stackexchange.com/questions/1226707/how-to-check-if-point-x-in-mathbbrn-is-in-a-n-simplex
-        #   https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.spatial.KDTree.html
+        simplices = [None for _ in points]
+        for i, point in enumerate(points):
+            # If the point lies within the convex hull of library points find the minimally bounding simplex...
+            if self._in_hull(point):
+                nearest_distance = np.inf
 
-        # get the n+1 nearest neighbours of p, not including p
-        # k_nn tracks which nearest neighbours we are querying for a valid simplex
-        # len(k_nn) is always one greater than the dimension of the embedding
-        # i.e. if nn = [2,3,4], simplex_candidates will be populated with the 2nd, 3rd, and 4th closest nearest
-        # neighbours
-        nearest_neighbours = [i for i in range(1, self.dimension + 2)]
-        # starting with (k = self.dimension + 1) nearest neighbours, check if these neighbours from a simplex that
-        # encloses the given point. If not, then replace the kth nearest neighbour with the k+1 nearest neighbour and
-        # try again
-        while True:
-            simplex_candidates = self.distance_tree.query(point, k=nearest_neighbours)[1]
-            T = self.frame.iloc[simplex_candidates[:-1]].values
-            r_n = self.frame.iloc[simplex_candidates[-1]].values
-            for i in range(len(T)):
-                T[i] = T[i] - r_n
-            T = T.T
-            # todo: what are the cases when T is singular?
-            #  (1) There are i points near p, q_1...q_i, where q_1=q_2...=q_i
-            #       (ii) ?
-            try:
-                _lambda = np.matmul(np.linalg.inv(T), point - r_n)
-                _lambda = np.append(_lambda, 1 - _lambda.sum())
-            except np.linalg.LinAlgError:
-                nearest_neighbours[-1] = nearest_neighbours[-1] + 1
-                continue
-            return [simplex_candidates, _lambda]
+                for simplex in self._delaunay_triangulation.simplices:
+                    point_simplex = [self.frame.iloc[j] for j in simplex]
+                    distance = np.linalg.norm(np.array(point_simplex) - np.array(point))
+                    if distance < nearest_distance:
+                        simplices[i] = point_simplex
+                        nearest_distance = distance
+            # ...otherwise return the n+1 nearest neighbours where n is the dimension of the embedding
+            else:
+                simplices[i] = self.distance_tree.query(points, k=[i for i in range(1, self.dimension+2)])
+
+    def _in_hull(self, point) -> bool:
+        in_hull = True
+        for equation in self._convex_hull.equations:
+            if np.dot(point, equation[:-1]) > equation[-1]:
+                in_hull = False
+                break
+        return in_hull

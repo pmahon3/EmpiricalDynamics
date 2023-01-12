@@ -7,7 +7,7 @@ from scipy.linalg import pinv
 from scipy.sparse.csgraph import shortest_path
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
-from src.edynamics.modelling_tools.blocks.Block import Block
+from edynamics.modelling_tools.blocks.Block import Block
 
 np.seterr(divide='ignore', invalid='ignore')
 
@@ -85,7 +85,7 @@ class Model:
         points = points.values
         projections = np.empty(shape=points.shape, dtype=float)
         for point in range(len(points)):
-            simplex = self.block._get_homogeneous_barycentric_coordinates(point=points[point])
+            simplex = self.block._get_simplex(point=points[point])
             projections[point] = simplex[1].T @ self.block.frame.iloc[simplex[0] + 1].values
         return pd.DataFrame(data=projections, columns=columns, index=index)
 
@@ -172,16 +172,18 @@ class Model:
         values for the model target variable, for i-th theta input from thetas.
         """
         times = self.series.loc[start:end].index
-        points = self.block.get_points(times)
-        actual = self.block.get_points(times + self.block.frequency)
+        x = self.block.get_points(times)
+        y = self.block.series.loc[times + self.block.frequency]
         rhos = [_ for _ in range(len(thetas))]
         percent_correct_direction = [_ for _ in range(len(thetas))]
         for i, theta in enumerate(thetas):
-            projections = self.smap_projection(points, theta=theta, p=p)
-            projections = projections.droplevel(level=0)
-            rhos[i] = projections[self.target].corr(actual[self.target])
-            percent_correct_direction[i] = projections[self.target] - actual[self.target].shift() / actual[
-                self.target].diff()
+            y_hat = self.smap_projection(x, theta=theta, p=p)
+            y_hat = y_hat.droplevel(level=0)
+            rhos[i] = y_hat[self.target].corr(x[self.target])
+            percent_correct_direction[i] = y_hat[self.target] - y / y.diff()
+            percent_correct_direction[i].replace([np.inf, -np.inf], np.nan, inplace=True)
+            percent_correct_direction[i].dropna(inplace=True)
+            percent_correct_direction[i] = percent_correct_direction[i].mean()
         return pd.DataFrame({'rhos': rhos, '%_correct_direction': percent_correct_direction}, index=thetas)
 
     def connectedness(self,
