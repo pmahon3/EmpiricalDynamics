@@ -48,13 +48,13 @@ class Model:
         if self.n_neighbors is not None:
             self._build_knn_graph(knn=self.n_neighbors)
 
-    def predict(self, points: pd.DataFrame, method: str = 'knn', **method_kwargs) -> pd.DataFrame:
+    def predict(self, points: pd.DataFrame, method: str = 'knn', *method_args, **method_kwargs) -> pd.DataFrame:
         if method == 'knn':
-            return self._knn_projection(points=points)
+            return self._knn_projection(points=points, *method_args, **method_kwargs)
         elif method == 'simplex':
             return self._simplex_projection(points=points)
         elif method == 'smap':
-            return self._smap_projection(points)
+            return self._smap_projection(points, *method_args, *method_args, **method_kwargs)
         else:
             raise ValueError('Invalid method. Specified methods are:\n\tknn\n\tsimplex\n\tsmap')
 
@@ -76,7 +76,7 @@ class Model:
             x = temporary_model.block.get_points(times=self.series.loc[start:end].index)
             y = self.series.loc[start:end]
 
-            y_hat = temporary_model._knn_projection(points=x, knn=None)
+            y_hat = temporary_model._knn_projection(points=x, knn=temporary_model.block.dimension + 1)
 
             rhos[i] = y_hat[self.target].corr(y[self.target])
         return rhos
@@ -115,23 +115,31 @@ class Model:
     def _simplex_projection(self, points: pd.DataFrame) -> pd.DataFrame:
         pass
 
-    def _knn_projection(self, points: pd.DataFrame, knn: int = None) -> pd.DataFrame:
+    def _knn_projection(self, points: pd.DataFrame, knn: int, steps: int = 1, step_size: int = 1,
+                         p: int = 2) -> pd.DataFrame:
         """
         Perform a simplex projection forecast from a given point using points in the embedding.
         @points: the points to be projected
         @knn: the number of nearest neighbours to use for each projection, one more than the dimensionality of the
         embedding by default
-        @return: the forecasted points
+         @param steps: the number of prediction steps to make out from for each point. By default 1.
+        period.
+        @param step_size: the number to steps, of length given by the frequency of the block, to prediction.
+        @param p: which minkowski p-norm to use if using the minkowski metric.
+        @return: the knn projected points
         """
 
-        indices = points.index + points.index.freq
-        projections = np.empty(shape=(len(points), self.block.dimension))
+        indices = self._build_prediction_index(index=points.index, steps=steps, step_size=step_size)
+        projections = pd.DataFrame(index=indices, columns=self.block.frame.columns, dtype=float)
 
-        # Get barycentric coordinates of n+1 knn where n is the embeddign dimension
-        weights, knn_idxs = self.block._get_weighted_knns(points.values, knn=knn)
-
-        for i, (weight, knn_idx) in enumerate(zip(weights, knn_idxs)):
-            projections[i, :] = np.matmul(weight, self.block.frame.iloc[knn_idx + 1].values) / weight.sum()
+        for i in range(len(points)):
+            current_time = indices[i * steps][0]
+            point = points.iloc[i].values
+            for j in range(steps):
+                prediction_time = indices[i * steps + j][-1]
+                weights, knn_idxs = self.block._get_weighted_knns(point, max_time=current_time, knn=knn)
+                projections.loc[(current_time, prediction_time)] = np.matmul(weights, self.block.frame.iloc[knn_idxs + 1].values) / weights.sum()
+                point = projections.loc[(current_time, prediction_time)].values
 
         return pd.DataFrame(data=projections, index=indices, columns=self.block.frame.columns)
 

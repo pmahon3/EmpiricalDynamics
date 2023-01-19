@@ -150,14 +150,24 @@ class Block:
         else:
             pass
 
-    def _get_weighted_knns(self, points, knn: int = None):
+    def _get_weighted_knns(self, point, max_time: np.datetime64, knn: int):
+        # Set defualt knn to one greater than the embedding dimension
         if knn is None:
             knn = self.dimension + 1
-        _, knn_idxs = self.distance_tree.query(points, k=knn)
-        weights = np.empty(shape=(len(points), knn))
-        for i, (point, knn_idx) in enumerate(zip(points, knn_idxs)):
-            _min = np.abs(cdist(point[:, np.newaxis].T, self.frame.iloc[knn_idx])).min()
-            weights[i] = np.exp(-np.abs(cdist(point[:, np.newaxis].T, self.frame.iloc[knn_idx])) / _min)
+
+        knn_idxs = np.empty(shape=(knn), dtype=int)
+        count = 0
+        k = 1
+        while count < knn:
+            _, knn_idx = self.distance_tree.query(point, [k])
+            if self.frame.index[knn_idx[0]] <= max_time:
+                knn_idxs[count] = knn_idx[0]
+                count += 1
+            k += 1
+
+        _min = np.abs(cdist(point[:, np.newaxis].T, self.frame.iloc[knn_idxs])).min()
+        weights = np.exp(-np.abs(cdist(point[:, np.newaxis].T, self.frame.iloc[knn_idxs])) / _min)
+
         return weights, knn_idxs
 
     def _get_barycentric_coordinates(self, point, simplex_idxs) -> np.array:
