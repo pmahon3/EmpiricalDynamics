@@ -35,8 +35,6 @@ class Model:
         self.knn_graph: coo_matrix = None
         #: np.array: distance matrix for points/nodes in the knn graph
         self.knn_graph_distance_matrix = None
-        # int: the number of nearest neighbours used to construct the knn graph
-        self.n_neighbors: int = n_neighbors
 
     # PUBLIC
     def compile(self):
@@ -45,16 +43,16 @@ class Model:
         """
         # Compile the block
         self.block.compile()
-        if self.n_neighbors is not None:
-            self._build_knn_graph(knn=self.n_neighbors)
 
     def predict(self, points: pd.DataFrame, method: str = 'knn', *method_args, **method_kwargs) -> pd.DataFrame:
         if method == 'knn':
             return self._knn_projection(points=points, *method_args, **method_kwargs)
-        elif method == 'simplex':
-            return self._simplex_projection(points=points)
+        elif method == 'mbsp':
+            return self._minimal_bounding_simplex_projection(points=points, *method_args, **method_kwargs)
         elif method == 'smap':
             return self._smap_projection(points, *method_args, *method_args, **method_kwargs)
+        elif method == 'lbsp':
+            return self._local_barycentric_simplex_projection(points, *method_args, **method_kwargs)
         else:
             raise ValueError('Invalid method. Specified methods are:\n\tknn\n\tsimplex\n\tsmap')
 
@@ -64,8 +62,7 @@ class Model:
                        dimensions=10,
                        ) -> [float]:
 
-        times = self.series.loc[start:end].index
-        rhos = [None for i in range(dimensions)]
+        rhos = [None for _ in range(dimensions)]
 
         temporary_model = deepcopy(self)
         lags = [Lag(self.target, tau=-i) for i in range(0, dimensions)]
@@ -78,7 +75,7 @@ class Model:
 
             y_hat = temporary_model._knn_projection(points=x, knn=temporary_model.block.dimension + 1)
 
-            rhos[i] = y_hat[self.target].corr(y[self.target])
+            rhos[i] = y_hat.droplevel(level=0)[self.target].corr(y[self.target])
         return rhos
 
     # Nonlinearity and Dimensionality estimators
@@ -88,7 +85,6 @@ class Model:
                      thetas: [float] = np.linspace(0, 10, 11),
                      p: float = 2.0
                      ) -> [float]:
-        temporary_block = [Lag]
         """
         nonlinearity estimates the optimal nonlinearity parameter, theta, for smap projections for a given range of
         observations
@@ -112,17 +108,19 @@ class Model:
 
     # PROTECTED
     # Prediction Functions
-    def _simplex_projection(self, points: pd.DataFrame) -> pd.DataFrame:
+    def _minimal_bounding_simplex_projection(self, points: pd.DataFrame, steps: int, step_size: int) -> pd.DataFrame:
         pass
 
-    def _knn_projection(self, points: pd.DataFrame, knn: int, steps: int = 1, step_size: int = 1,
-                         p: int = 2) -> pd.DataFrame:
+    def _local_barycentric_simplex_projection(self, points: pd.DataFrame, steps: int, step_size: int) -> pd.DataFrame:
+        pass
+
+    def _knn_projection(self, points: pd.DataFrame, knn: int, steps: int = 1, step_size: int = 1) -> pd.DataFrame:
         """
-        Perform a simplex projection forecast from a given point using points in the embedding.
+        Perform a simplex projection forecast from a given point using the k nearest neighbours in the embedding.
         @points: the points to be projected
-        @knn: the number of nearest neighbours to use for each projection, one more than the dimensionality of the
+        @param knn: the number of nearest neighbours to use for each projection, one more than the dimensionality of the
         embedding by default
-         @param steps: the number of prediction steps to make out from for each point. By default 1.
+        @param steps: the number of prediction steps to make out from for each point. By default 1.
         period.
         @param step_size: the number to steps, of length given by the frequency of the block, to prediction.
         @param p: which minkowski p-norm to use if using the minkowski metric.
@@ -138,10 +136,11 @@ class Model:
             for j in range(steps):
                 prediction_time = indices[i * steps + j][-1]
                 weights, knn_idxs = self.block._get_weighted_knns(point, max_time=current_time, knn=knn)
-                projections.loc[(current_time, prediction_time)] = np.matmul(weights, self.block.frame.iloc[knn_idxs + 1].values) / weights.sum()
+                projections.loc[(current_time, prediction_time)] = \
+                    np.matmul(weights, self.block.frame.iloc[knn_idxs + 1].values) / weights.sum()
                 point = projections.loc[(current_time, prediction_time)].values
 
-        return pd.DataFrame(data=projections, index=indices, columns=self.block.frame.columns)
+        return projections
 
     def _smap_projection(self, points: pd.DataFrame, theta: float = None, steps: int = 1, step_size: int = 1,
                          p: int = 2) -> pd.DataFrame:
@@ -193,7 +192,8 @@ class Model:
                 C = np.matmul(pinv(A), B)
                 projections.loc[(current_time, prediction_time)] = np.matmul(point, C)
 
-                # todo: replace predictions for lagged variables for either actual values or previous predicted values
+                # todo: encapsulate this functionality
+                # replace predictions for lagged variables for either actual values or previous predicted values
                 for lag in self.block.lags:
                     lag_time = prediction_time + self.block.frequency * lag.tau
                     if lag.tau == 0:
@@ -221,14 +221,14 @@ class Model:
             theta = self.theta
         return np.exp(-theta * (distance_matrix_ / np.average(distance_matrix_, axis=0)))
 
-    # TODO: experimental, these require normalization?
+    # todo: experimental, these require normalization?
     def _tricubic(self, distance_matrix_, theta: float, scaler: str = None):
         # Set default theta to model theta
         if theta is None:
             theta = self.theta
 
         # Scale/standardize distance matrix
-        # TODO: I still don't really get theta parameterization and scaling/standardizing here...
+        # todo: I still don't really get theta parameterization and scaling/standardizing here...
         if scaler == 'minmax':
             distance_matrix_ = MinMaxScaler().fit_transform(distance_matrix_.flatten().reshape(-1, 1))
         else:
@@ -236,14 +236,14 @@ class Model:
 
         return (1 - (distance_matrix_ / theta)) ** 3 * np.heaviside(1 - (distance_matrix_ / theta), 1.0)
 
-    # todo: experimental
+    # todo: experimental, these require normalization?
     def _epanechnikov(self, distance_matrix_, theta: float, scaler: str = None):
         # Set default theta to model theta
         if theta is None:
             theta = self.theta
 
         # Scale/standardize distance matrix
-        # TODO: I still don't really get theta parameterization and scaling/standardizing here...
+        # todo: I still don't really get theta parameterization and scaling/standardizing here...
         if scaler == 'minmax':
             distance_matrix_ = MinMaxScaler().fit_transform(distance_matrix_.flatten().reshape(-1, 1))
         elif scaler == 'standard':
@@ -303,3 +303,4 @@ class Model:
         self.knn_graph = coo_matrix(arg1=(knn_dists, (idxs, knn_idxs)),
                                     shape=(M, M))
         self.knn_graph_distance_matrix = shortest_path(self.knn_graph, directed=False)
+
