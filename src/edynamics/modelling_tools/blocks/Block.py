@@ -2,12 +2,11 @@ import datetime
 
 import pandas as pd
 import numpy as np
-
 from scipy.spatial import cKDTree
-from scipy.spatial.distance import pdist
+from scipy.spatial.distance import cdist, pdist
 from scipy.spatial import ConvexHull
-from scipy.spatial import Delaunay
 
+from itertools import combinations
 from collections import namedtuple
 
 from edynamics.modelling_tools.data_types.Lag import Lag
@@ -42,15 +41,9 @@ class Block:
         #: scipy.spatial.cKDTree: a KDTree storing the distances between all pairs of library points for the the delay
         # embedding using the l2 norm in R^n where n is the embedding dimension (i.e. number of lags, len(self.lags))
         self.distance_tree: cKDTree = None
-        #: np.array: the l2 distances between all pairs of embedded points.  The distance between the ith and jth point
-        # is at location X[m * i + j - ((i + 2) * (i + 1)) // 2], where m is the number of points.
-        self.pairwise_distances: np.ndarray = None
-        #: convex_hull: the convex hull of the library points, useful when trying to find the minimal bounding simplex
-        # in the library points for a given point
+
         self._convex_hull: ConvexHull = None
-        # delaunay_triangulation: the delaunay triangulation for the library points, useful when trying to find the
-        # minimal bounding simplex in the library points for a given point
-        self._delaunay_triangulation = None
+
     # PUBLIC
     def compile(self, mask_function=None) -> None:
         """
@@ -64,8 +57,6 @@ class Block:
         self._build_block(mask_function=mask_function)
         # Build the KDTree
         self.distance_tree = cKDTree(self.frame.iloc[:-1])
-        # Compute pairwise distances
-        self.pairwise_distances = pdist(self.frame.values[:-1], metric='euclidean')
 
     def get_points(self, times: [np.datetime64]):
         """
@@ -108,38 +99,81 @@ class Block:
             self.frame = self.frame.loc[self.frame.apply(lambda x: mask_function(x.name), axis=1)]
         self.dimension = len(self.lags)
         self.frame.dropna(inplace=True)
-        self._convex_hull = ConvexHull(self.frame)
-        self._delaunay_triangulation = Delaunay(self.frame)
 
     def _compute_pairwise_distances(self):
         self._pairwise_distances = pdist(self.frame.values)
 
-    def _get_simplex(self, points: [np.array]) -> [[int], [float]]:
+    def _get_simplex_or_nn_idxs(self, points: [np.array]) -> [[int]]:
         """
-        @param points: the points for which we want to find minimal bounding simplex for. If a bounding simplex is not
-        available then use the k nearest neighbours where k = n + 1 and n is the dimension of the embedding.
-        @return: a list of the indices of the minimal simplex
+        Returns the minimally bounding simplex, from the library points, for each of the given points. If a given point
+        lies outside the cloud of library points, then the k nearest neighbours of that point are returned where
+        k = n + 1 and n is the dimension of the embedding.
+        @param points: the points for which we want to find minimal bounding simplex for.
+        @return: a list of the library indices of the minimal simplices or knn's.
         """
         simplices = [None for _ in points]
+
         for i, point in enumerate(points):
             # If the point lies within the convex hull of library points find the minimally bounding simplex...
             if self._in_hull(point):
-                nearest_distance = np.inf
-
-                for simplex in self._delaunay_triangulation.simplices:
-                    point_simplex = [self.frame.iloc[j] for j in simplex]
-                    distance = np.linalg.norm(np.array(point_simplex) - np.array(point))
-                    if distance < nearest_distance:
-                        simplices[i] = point_simplex
-                        nearest_distance = distance
+                simplices[i] = self._get_minimal_bounding_simplex(point)
             # ...otherwise return the n+1 nearest neighbours where n is the dimension of the embedding
             else:
-                simplices[i] = self.distance_tree.query(points, k=[i for i in range(1, self.dimension+2)])
+                simplices[i] = self.distance_tree.query(points, k=[i for i in range(1, self.dimension + 2)])
+        return simplices
 
-    def _in_hull(self, point) -> bool:
-        in_hull = True
-        for equation in self._convex_hull.equations:
-            if np.dot(point, equation[:-1]) > equation[-1]:
-                in_hull = False
-                break
-        return in_hull
+    def _in_hull(self, point, tolerance=np.finfo(float).eps*2) -> bool:
+        return all(np.dot(equation[:-1], point) + equation[-1] <= tolerance for equation in self._convex_hull.equations)
+
+    def _get_minimal_bounding_simplex(self, point) -> list[int]:
+        # todo: extremely inefficient at high dimensions (?)
+        if self._in_hull(point):
+            k = self.dimension + 2
+            _, knn_idxs = self.distance_tree.query(point, k=range(1, k))
+            candidates = list(map(list, combinations(knn_idxs, self.dimension + 1)))
+
+            while True:
+                _lambdas = self._get_barycentric_coordinates(point, candidates)
+                result = [not (_lambda < 0).any() for _lambda in _lambdas]
+
+                if any(result):
+                    break
+
+                k += 1
+                _, knn_idx = self.distance_tree.query(point, k=[k])
+                knn_idxs = np.append(knn_idxs, knn_idx)
+                new_candidates = list(map(list, list(combinations(knn_idxs, self.dimension + 1))))
+
+                candidates = list(map(list, set(map(tuple, new_candidates)).difference(set(map(tuple, candidates)))))
+
+            return
+        else:
+            pass
+
+    def _get_weighted_knns(self, points, knn: int = None):
+        if knn is None:
+            knn = self.dimension + 1
+        _, knn_idxs = self.distance_tree.query(points, k=knn)
+        weights = np.empty(shape=(len(points), knn))
+        for i, (point, knn_idx) in enumerate(zip(points, knn_idxs)):
+            _min = np.abs(cdist(point[:, np.newaxis].T, self.frame.iloc[knn_idx])).min()
+            weights[i] = np.exp(-np.abs(cdist(point[:, np.newaxis].T, self.frame.iloc[knn_idx])) / _min)
+        return weights, knn_idxs
+
+    def _get_barycentric_coordinates(self, point, simplex_idxs) -> np.array:
+        """
+        Computes the barycentric coordinates of a set of points with respet to the simplices denoted by the indices
+        within the embedded block.
+        :param point: the point for which the barycentric coordinates are to be returned
+        :param simplex_idxs: a list containing the indices for the simplex used to compute the coordinates
+        for the given points.
+        :return: an n x m numpy array of the barycentric coordinates where row n provides the barycentric coordinates
+        for the nth point in points relative the the nth simplex given by simplex_idxs.
+        """
+        coords = np.empty(shape=(1, self.dimension + 1))
+        simplex = self.frame.iloc[simplex_idxs].values
+        T = (simplex[:-1, :] - simplex[-1, :])
+        coords[:, :-1] = np.linalg.pinv(T.T) @ (point - simplex[-1, :]).T
+        coords[:, -1] = 1 - coords[:, :-1].sum()
+
+        return coords

@@ -7,7 +7,11 @@ from scipy.linalg import pinv
 from scipy.sparse.csgraph import shortest_path
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
+from copy import deepcopy
+from tqdm import tqdm
+
 from edynamics.modelling_tools.blocks.Block import Block
+from edynamics.modelling_tools.data_types.Lag import Lag
 
 np.seterr(divide='ignore', invalid='ignore')
 
@@ -42,55 +46,97 @@ class Model:
         # Compile the block
         self.block.compile()
         if self.n_neighbors is not None:
-            self.build_knn_graph(knn=self.n_neighbors)
+            self._build_knn_graph(knn=self.n_neighbors)
 
-    # todo: experimental
-    def build_knn_graph(self, knn: int) -> [coo_matrix, np.array]:
-        """
-        Build the k nearest neighbours graph, and corresponding distance matrix, of the embedding data.
-        @param knn: the number of nearest neighbours used to build the graph.
-        """
-        # Only include up to the last point in the library set, the last point is reserved for the output of the linear
-        # regression
-        M = len(self.block.frame) - 1
-        # Get the k nearest neighbours and distances of each point in the embedding set
-        knn_dists, knn_idxs = self.block.distance_tree.query(self.block.frame[:-1], k=[i for i in range(2, knn + 2)])
-        idxs = [idx for idx in range(M) for dist in knn_dists[idx]]
-        knn_idxs = [nn for nn_list in knn_idxs for nn in nn_list]
-        knn_dists = [dist for dist_list in knn_dists for dist in dist_list]
-        self.knn_graph = coo_matrix(arg1=(knn_dists, (idxs, knn_idxs)),
-                                    shape=(M, M))
-        self.knn_graph_distance_matrix = shortest_path(self.knn_graph, directed=False)
+    def predict(self, points: pd.DataFrame, method: str = 'knn', **method_kwargs) -> pd.DataFrame:
+        if method == 'knn':
+            return self._knn_projection(points=points)
+        elif method == 'simplex':
+            return self._simplex_projection(points=points)
+        elif method == 'smap':
+            return self._smap_projection(points)
+        else:
+            raise ValueError('Invalid method. Specified methods are:\n\tknn\n\tsimplex\n\tsmap')
 
-    def naive_projection(self, points: pd.DataFrame) -> pd.DataFrame:
-        """
-        The naive projection takes the nearest library time point and projects it forward one time step to make provide
-        a prediction.
-        """
-        points = points.values
-        projections = np.empty(shape=points.shape, dtype=float)
-        for point in range(len(points)):
-            nn = self.block.distance_tree.query(point, k=1)[1]
-            projections[point] = point * (point / self.block.frame.iloc[nn].values)
+    def dimensionality(self,
+                       start: pd.Timestamp,
+                       end: pd.Timestamp,
+                       dimensions=10,
+                       ) -> [float]:
 
-    # todo: experimental
-    def simplex_projection(self, points: pd.DataFrame) -> pd.DataFrame:
+        times = self.series.loc[start:end].index
+        rhos = [None for i in range(dimensions)]
+
+        temporary_model = deepcopy(self)
+        lags = [Lag(self.target, tau=-i) for i in range(0, dimensions)]
+        for i in tqdm(range(dimensions)):
+            temporary_model.block.lags = lags[:i + 2]
+            temporary_model.block.compile()
+
+            x = temporary_model.block.get_points(times=self.series.loc[start:end].index)
+            y = self.series.loc[start:end]
+
+            y_hat = temporary_model._knn_projection(points=x, knn=None)
+
+            rhos[i] = y_hat[self.target].corr(y[self.target])
+        return rhos
+
+    # Nonlinearity and Dimensionality estimators
+    def nonlinearity(self,
+                     start: pd.Timestamp,
+                     end: pd.Timestamp,
+                     thetas: [float] = np.linspace(0, 10, 11),
+                     p: float = 2.0
+                     ) -> [float]:
+        temporary_block = [Lag]
+        """
+        nonlinearity estimates the optimal nonlinearity parameter, theta, for smap projections for a given range of
+        observations
+        @param start:
+        @param end:
+        @param thetas: the theta values to test. By default they are 1.0, 2.0, ... , 10.0
+        @param p: which p to use when using minkowski norm for the metric, 2 by default.
+        @return: a list of floats where the i-th entry is the correlation coefficient of smap-projections and observed
+        values for the model target variable, for i-th theta input from thetas.
+        """
+        times = self.series.loc[start:end].index
+        x = self.block.get_points(times)
+        y = self.block.series.loc[times + self.block.frequency]
+        rhos = [_ for _ in range(len(thetas))]
+
+        for i, theta in enumerate(tqdm(thetas)):
+            y_hat = self._smap_projection(x, theta=theta, p=p)
+            y_hat = y_hat.droplevel(level=0)
+            rhos[i] = y_hat[self.target].corr(y[self.target])
+        return pd.DataFrame(rhos, index=thetas)
+
+    # PROTECTED
+    # Prediction Functions
+    def _simplex_projection(self, points: pd.DataFrame) -> pd.DataFrame:
+        pass
+
+    def _knn_projection(self, points: pd.DataFrame, knn: int = None) -> pd.DataFrame:
         """
         Perform a simplex projection forecast from a given point using points in the embedding.
         @points: the points to be projected
-        @return: the forecasted embedding vector
+        @knn: the number of nearest neighbours to use for each projection, one more than the dimensionality of the
+        embedding by default
+        @return: the forecasted points
         """
-        columns = points.columns
-        index = points.index + points.index.freq
-        points = points.values
-        projections = np.empty(shape=points.shape, dtype=float)
-        for point in range(len(points)):
-            simplex = self.block._get_simplex(point=points[point])
-            projections[point] = simplex[1].T @ self.block.frame.iloc[simplex[0] + 1].values
-        return pd.DataFrame(data=projections, columns=columns, index=index)
 
-    # S-Map
-    def smap_projection(self, points: pd.DataFrame, theta: float = None, steps: int = 1,  step_size: int = 1, p: int = 2) -> np.array:
+        indices = points.index + points.index.freq
+        projections = np.empty(shape=(len(points), self.block.dimension))
+
+        # Get barycentric coordinates of n+1 knn where n is the embeddign dimension
+        weights, knn_idxs = self.block._get_weighted_knns(points.values, knn=knn)
+
+        for i, (weight, knn_idx) in enumerate(zip(weights, knn_idxs)):
+            projections[i, :] = np.matmul(weight, self.block.frame.iloc[knn_idx + 1].values) / weight.sum()
+
+        return pd.DataFrame(data=projections, index=indices, columns=self.block.frame.columns)
+
+    def _smap_projection(self, points: pd.DataFrame, theta: float = None, steps: int = 1, step_size: int = 1,
+                         p: int = 2) -> pd.DataFrame:
         """
         Perform a S-Map projection from the given point. S-Map stands for Sequential locally weighted global linear
         maps. For a given predictor point in the embedding's state space, a weighted linear regression from all vectors
@@ -114,7 +160,7 @@ class Model:
         projections = pd.DataFrame(index=indices, columns=self.block.frame.columns, dtype=float)
 
         for i in range(len(points)):
-            current_time = indices[i*steps][0]
+            current_time = indices[i * steps][0]
             # Set up the regression
             # X is the library of inputs, the embedded points up to the starting point of the prediction period
             X = self.block.frame.loc[self.block.library.start:current_time][:-step_size]
@@ -149,137 +195,14 @@ class Model:
                             self.block.get_points([lag_time])[lag.variable_name]
                     elif lag_time > current_time:
                         projections.loc[(current_time, prediction_time)][lag.lagged_name] = \
-                            projections.loc[projections.index.get_level_values(level=1) == lag_time].iloc[-1][lag.variable_name]
+                            projections.loc[projections.index.get_level_values(level=1) == lag_time].iloc[-1][
+                                lag.variable_name]
 
                 point = projections.loc[(current_time, prediction_time)]
         return projections
 
-    # Nonlinearity and Dimensionality estimators
-    def nonlinearity(self,
-                     start: pd.Timestamp,
-                     end: pd.Timestamp,
-                     thetas: [float] = np.linspace(0, 10, 11),
-                     p: float = 2.0
-                     ) -> [float]:
-        """
-        nonlinearity estimates the optimal nonlinearity parameter, theta, for smap projections for a given range of
-        observations
-        @param start:
-        @param end:
-        @param thetas: the theta values to test. By default they are 1.0, 2.0, ... , 10.0
-        @param p: which p to use when using minkowski norm for the metric, 2 by default.
-        @return: a list of floats where the i-th entry is the correlation coefficient of smap-projections and observed
-        values for the model target variable, for i-th theta input from thetas.
-        """
-        times = self.series.loc[start:end].index
-        x = self.block.get_points(times)
-        y = self.block.series.loc[times + self.block.frequency]
-        rhos = [_ for _ in range(len(thetas))]
-        percent_correct_direction = [_ for _ in range(len(thetas))]
-        for i, theta in enumerate(thetas):
-            y_hat = self.smap_projection(x, theta=theta, p=p)
-            y_hat = y_hat.droplevel(level=0)
-            rhos[i] = y_hat[self.target].corr(x[self.target])
-            percent_correct_direction[i] = y_hat[self.target] - y / y.diff()
-            percent_correct_direction[i].replace([np.inf, -np.inf], np.nan, inplace=True)
-            percent_correct_direction[i].dropna(inplace=True)
-            percent_correct_direction[i] = percent_correct_direction[i].mean()
-        return pd.DataFrame({'rhos': rhos, '%_correct_direction': percent_correct_direction}, index=thetas)
-
-    def connectedness(self,
-                      points: pd.DataFrame,
-                      n_neighbors: [int],
-                      theta: float = None
-                      ) -> [float]:
-        """
-        nonlinearity estimates the optimal nonlinearity parameter, theta, for smap projections for a given range of
-        observations
-        @param points: an n-by-m pandas dataframe of m-dimensional lagged coordinate vectors, stored row-wise, to be
-        used in the nonlinearity estimation.
-        @param n_neighbors: the number of nearest neighbors to build corresponding isometric embeddings.
-        @param theta: the nonlinearity parameter for the weighting used in the S-Map projections.
-        @return: a list of floats where the i-th entry is the correlation coefficient of smap-projections and observed
-        values for the model target variable, for i-th theta input from thetas.
-        """
-        if theta is None:
-            theta = self.theta
-        rhos = [_ for _ in range(len(n_neighbors))]
-        percent_maes = [_ for _ in range(len(n_neighbors))]
-        for i, n_neighbor in enumerate(n_neighbors):
-            # Update knn graph
-            self.build_knn_graph(knn=n_neighbor)
-            projections = self.smap_projection(points, theta=theta)
-            rhos[i] = projections[self.target].corr(points[self.target])
-            percent_maes[i] = ((projections[self.target] - points[self.target]).abs()
-                               / points[self.target].abs()).mean() * 100
-        # Return knn graph to original state
-        self.build_knn_graph(knn=self.n_neighbors)
-        return pd.DataFrame({'rhos': rhos, '%_maes': percent_maes}, index=n_neighbors)
-
-    # PROTECTED
-    def _get_jacobian(self, points: pd.DataFrame, theta: float):
-        """
-        Computes the jacobian of for a given point in the state space of the delay embedding.
-        """
-        if theta is None:
-            theta = self.theta
-
-        points = points.values
-        jacobians = [_ for _ in points]
-        # TODO: Would it be better to approximate the manifold M, based on the data, D, and define a metric on M which
-        #   could be used to compute distances for each x_i, x_j D?
-
-        # X is the library of inputs, the embedding points at time t
-        X = self.block.frame.loc[self.block.library.start:self.block.library.end][:-1]
-        # y is the library of outputs, the embedding points at time t+1
-        y = self.block.frame.loc[self.block.library.start:self.block.library.end][1:]
-        # todo: needs to be fixed for minkowski function signature including max_time
-        distance_matrix_ = self._minkowski(points, p=2)
-
-        weights = self._exponential(distance_matrix_, theta=theta)
-        for i in range(len(points)):
-            # A is the product of the weights and the library X points, A = w * X
-            A = weights[i][:, np.newaxis][:-1] * X.values
-            # B is the product of the weights and the library y points, A = w * y
-            B = weights[i][:, np.newaxis][:-1] * y.values
-            # Solve for C in B=AC via SVD
-            jacobians[i] = np.matmul(pinv(A), B)
-
-        return jacobians
-
-    # todo: experimental
-    def _get_hessian(self, points: pd.DataFrame, theta: float):
-        """
-        Computes an approximation of the hessian matrix for a given point in the state space of the delay embedding.
-        """
-        if theta is None:
-            theta = self.theta
-
-        points = points.values
-        hessians = [_ for _ in points]
-
-        # X is the library of inputs, the embedding points at time t
-        X = self.block.frame.loc[self.block.library.start:self.block.library.end][:-1]
-        # y is the library of outputs, the embedding points at time t+1
-        y = self.block.frame.loc[self.block.library.start:self.block.library.end][1:]
-        # todo: needs to be fixed for minkowski function signature including max_time
-        distance_matrix_ = self._minkowski(points, p=2)
-
-        weights = self._exponential(distance_matrix_, theta=theta)
-        for i in range(len(points)):
-            # A is the product of the weights and the library X points, A = w * X
-            A = weights[i][:, np.newaxis][:-1] * X.values
-            # B is the product of the weights and the library y points, A = w * y
-            B = weights[i][:, np.newaxis][:-1] * y.values
-            # Solve for C in B=AC via SVD
-            hessians[i] = np.matmul(pinv(A), B)
-
-        return hessians
-
-    # Weighting Kernels
-    # These are the functions for introducing state-space dependence in the local linear regression performed by
-    # smap_projection. The distance_matrices are given by a given metric function (...listed below these functions)
-    def _exponential(self, distance_matrix_, theta: float):
+    # Weighting Functions
+    def _exponential(self, distance_matrix_, theta: float = None):
         """
         An exponentially normalized weighting with locality parametrized by theta. For vectors a,b in R^n the
         weighting is: weight = e^{(-theta * |a-b|)/d_bar} where |a-b| are given by the distance matrix. @param:
@@ -353,3 +276,22 @@ class Model:
             )
         )
         return pd.MultiIndex.from_tuples(tuples=tuples, names=['Current_Time', 'Prediction_Time'])
+
+    # todo: experimental
+    def _build_knn_graph(self, knn: int) -> [coo_matrix, np.array]:
+        """
+        Build the k nearest neighbours graph, and corresponding distance matrix, of the embedding data.
+        @param knn: the number of nearest neighbours used to build the graph.
+        """
+        # Only include up to the last point in the library set, the last point is reserved for the output of the linear
+        # regression
+        M = len(self.block.frame) - 1
+        # Get the k nearest neighbours and distances of each point in the embedding set
+        knn_dists, knn_idxs = self.block.distance_tree.query(self.block.frame[:-1],
+                                                             k=[i for i in range(2, knn + 2)])
+        idxs = [idx for idx in range(M) for dist in knn_dists[idx]]
+        knn_idxs = [nn for nn_list in knn_idxs for nn in nn_list]
+        knn_dists = [dist for dist_list in knn_dists for dist in dist_list]
+        self.knn_graph = coo_matrix(arg1=(knn_dists, (idxs, knn_idxs)),
+                                    shape=(M, M))
+        self.knn_graph_distance_matrix = shortest_path(self.knn_graph, directed=False)
