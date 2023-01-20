@@ -114,7 +114,7 @@ class Model:
     def _local_barycentric_simplex_projection(self, points: pd.DataFrame, steps: int, step_size: int) -> pd.DataFrame:
         pass
 
-    def _knn_projection(self, points: pd.DataFrame, knn: int, steps: int = 1, step_size: int = 1) -> pd.DataFrame:
+    def _knn_projection(self, points: pd.DataFrame, knn: int = None, steps: int = 1, step_size: int = 1) -> pd.DataFrame:
         """
         Perform a simplex projection forecast from a given point using the k nearest neighbours in the embedding.
         @points: the points to be projected
@@ -126,6 +126,8 @@ class Model:
         @param p: which minkowski p-norm to use if using the minkowski metric.
         @return: the knn projected points
         """
+        if knn is None:
+            knn = self.block.dimension + 1
 
         indices = self._build_prediction_index(index=points.index, steps=steps, step_size=step_size)
         projections = pd.DataFrame(index=indices, columns=self.block.frame.columns, dtype=float)
@@ -138,8 +140,11 @@ class Model:
                 weights, knn_idxs = self.block._get_weighted_knns(point, max_time=current_time, knn=knn)
                 projections.loc[(current_time, prediction_time)] = \
                     np.matmul(weights, self.block.frame.iloc[knn_idxs + 1].values) / weights.sum()
-                point = projections.loc[(current_time, prediction_time)].values
 
+                projections = self._update_lagged_values(projections=projections,
+                                                         current_time=current_time,
+                                                         prediction_time=prediction_time)
+                point = projections.loc[(current_time, prediction_time)].values
         return projections
 
     def _smap_projection(self, points: pd.DataFrame, theta: float = None, steps: int = 1, step_size: int = 1,
@@ -194,17 +199,9 @@ class Model:
 
                 # todo: encapsulate this functionality
                 # replace predictions for lagged variables for either actual values or previous predicted values
-                for lag in self.block.lags:
-                    lag_time = prediction_time + self.block.frequency * lag.tau
-                    if lag.tau == 0:
-                        pass
-                    elif lag_time <= current_time:
-                        projections.loc[(current_time, prediction_time)][lag.lagged_name] = \
-                            self.block.get_points([lag_time])[lag.variable_name]
-                    elif lag_time > current_time:
-                        projections.loc[(current_time, prediction_time)][lag.lagged_name] = \
-                            projections.loc[projections.index.get_level_values(level=1) == lag_time].iloc[-1][
-                                lag.variable_name]
+                projections = self._update_lagged_values(projections=projections,
+                                                         current_time=current_time,
+                                                         prediction_time=prediction_time)
 
                 point = projections.loc[(current_time, prediction_time)]
         return projections
@@ -293,14 +290,32 @@ class Model:
         """
         # Only include up to the last point in the library set, the last point is reserved for the output of the linear
         # regression
-        M = len(self.block.frame) - 1
         # Get the k nearest neighbours and distances of each point in the embedding set
-        knn_dists, knn_idxs = self.block.distance_tree.query(self.block.frame[:-1],
-                                                             k=[i for i in range(2, knn + 2)])
-        idxs = [idx for idx in range(M) for dist in knn_dists[idx]]
+        knn_dists, knn_idxs = self.block.distance_tree.query(self.block.frame, k=[i for i in range(2, knn + 2)])
+        idxs = [idx for idx in range(len(self.block.frame)) for dist in knn_dists[idx]]
         knn_idxs = [nn for nn_list in knn_idxs for nn in nn_list]
         knn_dists = [dist for dist_list in knn_dists for dist in dist_list]
         self.knn_graph = coo_matrix(arg1=(knn_dists, (idxs, knn_idxs)),
-                                    shape=(M, M))
-        self.knn_graph_distance_matrix = shortest_path(self.knn_graph, directed=False)
+                                    shape=(len(self.block.frame), len(self.block.frame)))
 
+    # helpers
+    def _update_lagged_values(self, projections: pd.DataFrame, current_time: np.datetime64,
+                              prediction_time: np.datetime64,
+                              ):
+        """
+        Updates a given predicted point in a projection data frame by replacing the lagged variables with either the
+        actual variables, if available, or the projected variables from previous predictions
+        """
+        for lag in self.block.lags:
+            lag_time = prediction_time + self.block.frequency * lag.tau
+            if lag.tau == 0:
+                pass
+            elif lag_time <= current_time:
+                projections.loc[(current_time, prediction_time)][lag.lagged_name] = \
+                    self.block.get_points([lag_time])[lag.variable_name]
+            elif lag_time > current_time:
+                projections.loc[(current_time, prediction_time)][lag.lagged_name] = \
+                    projections.loc[projections.index.get_level_values(level=1) == lag_time].iloc[-1][
+                        lag.variable_name]
+
+        return projections

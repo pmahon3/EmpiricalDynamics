@@ -58,7 +58,7 @@ class Block:
         # Build the KDTree
         self.distance_tree = cKDTree(self.frame.iloc[:-1])
 
-    def get_points(self, times: [np.datetime64]):
+    def get_points(self, times: [np.datetime64]) -> pd.DataFrame:
         """
         get_points retrieves the delay embedded points for any measurement in the series between the start and end
         dates
@@ -71,6 +71,7 @@ class Block:
                               dtype=float)
         for time in points.index:
             points.loc[time] = [self.series.loc[time + self.frequency * lag.tau].values[0] for lag in self.lags]
+
         return points
 
     # Setters
@@ -151,21 +152,27 @@ class Block:
             pass
 
     def _get_weighted_knns(self, point, max_time: np.datetime64, knn: int):
-        # Set defualt knn to one greater than the embedding dimension
-        if knn is None:
-            knn = self.dimension + 1
-
+        """
+        Finds the k nearest neighbours of the given point in the library embedding. The time index of the neighbours
+        has to be less than the given maximum time.
+        @param point: the point for which we want the k nearest neighbours
+        @param max_time: the time for which all k nearest neighbour times need to be less than.
+        @return: a list of the integer indices of the k neareset neighbours in the library block.
+        """
         knn_idxs = np.empty(shape=(knn), dtype=int)
         count = 0
-        k = 1
+        k = list(range(1, knn+1))
         while count < knn:
-            _, knn_idx = self.distance_tree.query(point, [k])
-            if self.frame.index[knn_idx[0]] <= max_time:
-                knn_idxs[count] = knn_idx[0]
-                count += 1
-            k += 1
+            dists, knn_idx = self.distance_tree.query(point, k)
+            for idx in knn_idx:
+                if self.frame.index[idx] < max_time:
+                    knn_idxs[count] = idx
+                    count += 1
+            k = [k[-1] + 1]
 
-        _min = np.abs(cdist(point[:, np.newaxis].T, self.frame.iloc[knn_idxs])).min()
+        #
+        dists = cdist(point[:, np.newaxis].T, self.frame.iloc[knn_idxs])
+        _min = dists[dists>0].min()
         weights = np.exp(-np.abs(cdist(point[:, np.newaxis].T, self.frame.iloc[knn_idxs])) / _min)
 
         return weights, knn_idxs
