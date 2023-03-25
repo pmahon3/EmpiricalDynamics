@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 # Setting up
 setup(
     name="edynamics",
-    version='0.1.3',
+    version='0.2.0',
     author="Patrick Mahon",
     author_email="<pmahon3@uwo.ca>",
     description='Empirical dynamic modelling',
