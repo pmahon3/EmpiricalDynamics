@@ -1,17 +1,18 @@
 from setuptools import setup, find_packages
+REQUIREMENTS = [i.strip() for i in open("requirements.txt").readlines()]
 
 # Setting up
 setup(
     name="edynamics",
-    version='0.2.0',
+    version='0.3.8',
     author="Patrick Mahon",
     author_email="<pmahon3@uwo.ca>",
-    description='Empirical dynamic modelling',
+    description='Empirical dynamic modelling - modular, parallel, object-oriented',
     packages=find_packages(),
-    install_requires=['numpy', 'pandas', 'scipy', 'scikit-learn'],
+    install_requires=REQUIREMENTS,
     keywords=['python', 'edm', 'time series', 'forecasting', 'empirical dynamics'],
     classifiers=[
-        "Development Status :: 1 - Planning",
+        "Development Status :: 3 - Alpha",
         "Intended Audience :: Science/Research",
         "Programming Language :: Python :: 3",
         "Operating System :: Unix",

@@ -20,6 +20,9 @@ class lag(observer):
         else:
             self.observation_name = variable_name + '_(t' + str(tau) + ')'
 
+    def __str__(self):
+        return f"Lag(var_name={self.variable_name},tau={self.tau})"
+
     def observe(self, data: pd.DataFrame, time: pd.Timestamp) -> pd.Series:
         """
         Applies the observation function to the data at the given time.
@@ -42,6 +45,12 @@ class lag(observer):
         """
         return [time + self.tau * frequency]
 
+    def __eq__(self, other):
+        return self.variable_name == other.variable_name and self.tau == other.tau
+
+    def __hash__(self):
+        hash((self.variable_name, self.tau))
+
 
 class lag_moving_average(observer):
     def __init__(self, variable_name: str, q: int, tau: int = -1):
@@ -60,4 +69,8 @@ class lag_moving_average(observer):
     def observation_times(self, frequency: pd.DatetimeIndex.freq, time: pd.Timestamp):
         return [time + frequency * self.tau * i for i in range(self.q+1)]
 
+    def __eq__(self, other):
+        return self.variable_name == other.variable_name and self.q == other.q and self.tau == other.tau
 
+    def __hash__(self):
+        hash((self.variable_name, self.tau, self.q))

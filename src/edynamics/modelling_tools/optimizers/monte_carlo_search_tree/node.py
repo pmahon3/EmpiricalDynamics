@@ -1,64 +1,27 @@
-from __future__ import annotations
-
-from edynamics.modelling_tools.observers import observer, lag
-
-import numpy as np
+from abc import ABC, abstractmethod
 
 
-class node:
-    def __init__(self, observer_: observer = None, parent: node = None, children: [node] = None, V: float = np.nan, n: int = 0):
-        # observation function
-        self.observer = observer_
-        # parent node
-        self.parent = parent
+class node(ABC):
 
-        # children
-        if children is None:
-            self.children = []
-        if children is not None:
-            self.children = children
-            for child in children:
-                child.parent = self
+    def __init__(self, content):
+        self.content = content
 
-        #
-        if parent is not None and self not in parent.children:
-            parent.children.append(self)
+    @property
+    def content(self):
+        return self._content
 
-        # average value of the subtree rooted at this node
-        self.V = V
-        # number of times this node has been visited
-        self.n = n
-        # upper confidence bound:
+    @content.setter
+    def content(self, value):
+        self._content = value
 
-    def get_level(self, level: int = 0):
-        if self.parent is None:
-            return 0
-        else:
-            return level + self.parent.get_level(level + 1)
-
-    def add_child(self, new_child: node):
-        if new_child not in self.children:
-            self.children.append(new_child)
-        new_child.parent = self
-
-    def get_parents(self):
-        if self.parent is None:
-            return []
-        else:
-            parents = [self.parent]
-            result = self.parent.get_parents()
-            for parent in result:
-                parents.append(parent)
-            return parents
-
-    def compute_value(self):
+    @abstractmethod
+    def is_leaf(self):
         pass
 
-    def __str__(self):
-        return 'Node: ' + self.observer.__str__()
+    @abstractmethod
+    def __hash__(self):
+        pass
 
-if __name__ == '__main__':
-    a = node()
-    b = node(parent=a)
-    c = node(parent=b)
-    c.get_parents()
+    @abstractmethod
+    def __eq__(self, other):
+        pass

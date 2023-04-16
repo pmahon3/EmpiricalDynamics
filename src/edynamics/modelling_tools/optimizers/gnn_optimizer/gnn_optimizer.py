@@ -51,7 +51,7 @@ def gnn_optimizer(embedding: Embedding,
         # add a slot for a new lag_
         embedding.observers = embedding.observers + [None]
 
-        # loop over remaining lags
+        # loop over moves_remaining lags
         futures = []
         if compute_pool is not None:
             args = []
