@@ -3,7 +3,7 @@ import pandas as pd
 
 from ray.util.multiprocessing import Pool
 
-from edynamics.modelling_tools.embeddings import Embedding
+from edynamics.modelling_tools.embeddings import embedding
 from edynamics.modelling_tools.projectors import projector
 from edynamics.modelling_tools.observers import lag
 
@@ -12,7 +12,7 @@ from tqdm import tqdm
 from ray.util.multiprocessing import Pool
 
 
-def dimensionality(embedding: Embedding,
+def dimensionality(embedding_: embedding,
                    projector_: projector,
                    target: str,
                    points: pd.DataFrame,
@@ -37,7 +37,7 @@ def dimensionality(embedding: Embedding,
         Pearson's correlation coefficient.
     """
     # Save original observation functions
-    original_observers = embedding.observers
+    original_observers = embedding_.observers
 
     # initialize dataframe to return
     rhos = pd.DataFrame(data=[None for _ in range(dimensions)],
@@ -52,12 +52,12 @@ def dimensionality(embedding: Embedding,
     if compute_pool is not None:
         args = []
         for i in range(dimensions):
-            embedding_ = deepcopy(embedding)
-            embedding_.observers = lags[:i + 1]
-            embedding_.compile()
-            points_ = embedding_.get_points(times=points.index)
+            embedding_copy = deepcopy(embedding_)
+            embedding_copy.observers = lags[:i + 1]
+            embedding_copy.compile()
+            points_ = embedding_copy.get_points(times=points.index)
 
-            args.append([embedding_,
+            args.append([embedding_copy,
                          projector_,
                          target,
                          points_,
@@ -70,12 +70,12 @@ def dimensionality(embedding: Embedding,
         pbar = tqdm(range(dimensions), leave=True)
         for i in pbar:
             pbar.set_description('E = ' + str(i + 1))
-            embedding_ = deepcopy(embedding)
-            embedding_.observers = lags[:i + 1]
-            embedding_.compile()
-            points_ = embedding_.get_points(times=points.index)
+            embedding_copy = deepcopy(embedding_)
+            embedding_copy.observers = lags[:i + 1]
+            embedding_copy.compile()
+            points_ = embedding_copy.get_points(times=points.index)
 
-            futures.append(dimensionality_step(embedding=embedding_,
+            futures.append(dimensionality_step(embedding_=embedding_copy,
                                                projector_=projector_,
                                                target=target,
                                                points=points_,
@@ -94,18 +94,18 @@ def dimensionality(embedding: Embedding,
         rhos.loc[i + 1] = result
 
     # restore original observers
-    embedding.observers = original_observers
+    Embedding.observers = original_observers
 
     return rhos
 
 
-def dimensionality_step(embedding: Embedding,
+def dimensionality_step(embedding_: embedding,
                         projector_: projector,
                         target: str,
                         points: pd.DataFrame,
                         steps: int,
                         step_size: int) -> float:
-    y_hat = projector_.predict(embedding=embedding,
+    y_hat = projector_.predict(embedding_=embedding_,
                                points=points,
                                steps=steps,
                                step_size=step_size)
@@ -116,13 +116,13 @@ def dimensionality_step(embedding: Embedding,
 
 
 @ray.remote
-def dimensionality_parallel_step(embedding: Embedding,
+def dimensionality_parallel_step(embedding_: embedding,
                                  projector_: projector,
                                  target: str,
                                  points: pd.DataFrame,
                                  steps: int,
                                  step_size: int) -> float:
-    return dimensionality_step(embedding=embedding,
+    return dimensionality_step(embedding_=embedding_,
                                projector_=projector_,
                                target=target,
                                points=points,

@@ -3,7 +3,7 @@ from .projector import projector
 import numpy as np
 import pandas as pd
 
-from edynamics.modelling_tools.embeddings import Embedding
+from edynamics.modelling_tools.embeddings import embedding
 from edynamics.modelling_tools.norms import norm
 from edynamics.modelling_tools.weighers import weigher
 
@@ -20,15 +20,11 @@ class knn(projector):
                          weigher_=weigher_)
         self.k = k
 
-    def predict(self,
-                embedding: Embedding,
-                points: pd.DataFrame,
-                steps: int = 1,
-                step_size: int = 1) -> pd.DataFrame:
+    def predict(self, embedding_: embedding, points: pd.DataFrame, steps: int, step_size: int) -> pd.DataFrame:
         """
         Perform a k projection for each of the given points.
 
-        :param embedding: the state space embedding.
+        :param Embedding: the state space Embedding.
         :param points: the points to be projected.
         :param steps: the number of prediction steps to make out from for each point. By default 1.
             period.
@@ -36,14 +32,14 @@ class knn(projector):
         :return: the k projected points
         """
         if self.k is None:
-            self.k = embedding.dimension
+            self.k = embedding_.dimension
 
-        indices = self.build_prediction_index(frequency=embedding.frequency,
+        indices = self.build_prediction_index(frequency=embedding_.frequency,
                                               index=points.index,
                                               steps=steps,
                                               step_size=step_size)
         predictions = pd.DataFrame(index=indices,
-                                   columns=embedding.block.columns,
+                                   columns=embedding_.block.columns,
                                    dtype=float)
 
         for i in range(len(points)):
@@ -52,20 +48,20 @@ class knn(projector):
             for j in range(steps):
                 try:
                     prediction_time = indices[i * steps + j][-1]
-                    knn_idxs = embedding.get_k_nearest_neighbours(
+                    knn_idxs = embedding_.get_k_nearest_neighbours(
                         point=point,
                         max_time=current_time,
                         knn=self.k)
 
                     # todo can self.norm.distance_matrix be modified for this use case?
                     weights = self.weigher.weigh(distance_matrix=cdist(point[np.newaxis, :],
-                                                                       embedding.block.iloc[knn_idxs].values))
+                                                                       embedding_.block.iloc[knn_idxs].values))
 
                     predictions.loc[(current_time, prediction_time)] = \
-                        np.matmul(weights, embedding.block.iloc[knn_idxs + step_size].values) / weights.sum()
+                        np.matmul(weights, embedding_.block.iloc[knn_idxs + step_size].values) / weights.sum()
 
                     if steps > 1:
-                        predictions = self.update_values(embedding=embedding,
+                        predictions = self.update_values(embedding=embedding_,
                                                          predictions=predictions,
                                                          current_time=current_time,
                                                          prediction_time=prediction_time)

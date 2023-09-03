@@ -1,4 +1,4 @@
-from .embeddings import Embedding
+from .embeddings import embedding
 from .estimators import dimensionality, nonlinearity
 from .norms import minkowski
 from .observers import lag, lag_moving_average

@@ -6,12 +6,12 @@ from ray.util.multiprocessing import Pool
 
 from tqdm import tqdm
 
-from edynamics.modelling_tools.embeddings import Embedding
+from edynamics.modelling_tools.embeddings import embedding
 from edynamics.modelling_tools.projectors import projector
 from ray.util.multiprocessing import Pool
 
 
-def nonlinearity(embedding: Embedding,
+def nonlinearity(embedding_: embedding,
                  projector_: projector,
                  target: str,
                  points: pd.DataFrame,
@@ -24,7 +24,7 @@ def nonlinearity(embedding: Embedding,
     Estimates the optimal nonlinearity parameter, theta, for smap projections for a given set of
     observations.
 
-    :param embedding: the state space embedding.
+    :param embedding: the state space Embedding.
     :param projector_: the prediction method to use.
     :param target: the column in the block to predict.
     :param points: a dataframe, indexed by time, of the points from which to predict.
@@ -45,7 +45,7 @@ def nonlinearity(embedding: Embedding,
 
         args = []
         for i, theta in enumerate(thetas):
-            args.append([embedding,
+            args.append([embedding_,
                          theta,
                          projector_,
                          target,
@@ -60,7 +60,7 @@ def nonlinearity(embedding: Embedding,
         for i, theta in enumerate(pbar):
             pbar.set_description('\u03b8 = ' + str(round(theta, 4)))
 
-            futures.append(nonlinearity_step(embedding=embedding,
+            futures.append(nonlinearity_step(embedding_=embedding_,
                                              theta=theta,
                                              projector_=projector_,
                                              target=target,
@@ -82,7 +82,7 @@ def nonlinearity(embedding: Embedding,
     return rhos
 
 
-def nonlinearity_step(embedding: Embedding,
+def nonlinearity_step(embedding_: embedding,
                       theta: float,
                       projector_: projector,
                       target: str,
@@ -95,27 +95,27 @@ def nonlinearity_step(embedding: Embedding,
     x = embedding.get_points(points.index)
 
     # Projection outputs
-    times = projector_.build_prediction_index(frequency=embedding.frequency,
+    times = projector_.build_prediction_index(frequency=embedding_.frequency,
                                               index=points.index,
                                               steps=steps,
                                               step_size=step_size).get_level_values(level=1)
-    y = embedding.get_points(times=times)
+    y = embedding_.get_points(times=times)
 
     # Projection
-    y_hat = projector_.predict(embedding=embedding, points=x, steps=steps, step_size=step_size)
+    y_hat = projector_.predict(embedding=embedding_, points=x, steps=steps, step_size=step_size)
 
     return y_hat.droplevel(level=0)[target].corr(y[target])
 
 
 @ray.remote
-def nonlinearity_parallel_step(embedding: Embedding,
+def nonlinearity_parallel_step(embedding_: embedding,
                                theta: float,
                                projector_: projector,
                                target: str,
                                points: pd.DataFrame,
                                steps: int,
                                step_size: int) -> float:
-    return nonlinearity_step(embedding=embedding,
+    return nonlinearity_step(embedding_=embedding_,
                              theta=theta,
                              projector_=projector_,
                              target=target,

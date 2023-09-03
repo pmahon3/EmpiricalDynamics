@@ -1,25 +1,23 @@
 import numpy as np
 import pandas as pd
+import logging
 
 from scipy.spatial import cKDTree
 
 from edynamics.modelling_tools.observers import observer
 
 
-class Embedding:
+class embedding:
     def __init__(self,
                  data: pd.DataFrame,
                  observers: [observer],
                  library_times: [pd.Timestamp]
                  ):
         """
-        Defines a state space embedding of generic observer functions from a set of data.
+        Defines a state space Embedding of generic observer functions from a set of data.
 
         :param pd.DataFrame data: data to be embedded.
-        :param [observer] observers: list of observation functions for the embedding
-        :param pd.Timestamp library_times: the set of times determining the embedding library.
-        :param Callable[pd.Timestamp, Callable] mask: a function that, taking a pandas timestamp, returns a function
-            that can be used to filter the block for observations of the given timestamp type.
+        :param [observer] observers: list of observation functions for the Embedding
         """
 
         self.data = data
@@ -28,23 +26,27 @@ class Embedding:
 
         #: the frequency spacing of the time series
         self.frequency = data.index.freq
-        #: pd.DataFrame: pandas dataframe of the delay embedding
+        #: pd.DataFrame: pandas dataframe of the delay Embedding
         self.block: pd.DataFrame = None
-        #: int: dimension of the embedding, equal to the length of the list of observation functions.
+        #: int: dimension of the Embedding, equal to the length of the list of observation functions.
         self.dimension: int = len(observers)
         #: scipy.spatial.cKDTree: a KDTree storing the distances between all pairs of library points for the delay
-        # embedding using the l2 norm in R^n where n is the embedding dimension (i.e. number of lags, len(self.lags))
+        # Embedding using the l2 norm in R^n where n is the Embedding dimension (i.e. number of lags, len(self.lags))
         self.distance_tree: cKDTree = None
+
+        logging.info(msg="Embedding created.")
 
     # PUBLIC
     def compile(self) -> None:
         """
-        Builds the embedding block according to the observations functions.
+        Builds the Embedding block according to the observations functions.
         """
+
+        logging.info(msg="Compiling embedding...")
 
         self.block = pd.DataFrame(columns=[obs.observation_name for obs in self.observers], index=self.library_times)
 
-        # build the embedding block
+        # build the Embedding block
         for obs in self.observers:
             obs_data = list(map(obs.observe, [self.data for _ in range(len(self.library_times))], self.library_times))
 
@@ -55,6 +57,8 @@ class Embedding:
 
         # build the KDTree
         self.distance_tree = cKDTree(self.block.iloc[:-1])
+
+        logging.info(msg="Embedding compiled.")
 
     def get_points(self,
                    times: [pd.Timestamp]) -> pd.DataFrame:
@@ -87,7 +91,7 @@ class Embedding:
                                  max_time: pd.Timestamp,
                                  knn: int) -> [int]:
         """
-        Returns the k nearest neighbours of the embedding and their distances to the given embedded point The time
+        Returns the k nearest neighbours of the Embedding and their distances to the given embedded point The time
         index of the neighbours is less than the given maximum time.
 
         :param np.array point: the point for which we want the k nearest neighbours. The point should be a vector, i.e.
@@ -107,7 +111,6 @@ class Embedding:
 
                     count += 1
 
-            # todo: wtf is this?
             k = [k[-1] + 1]
 
         return knn_idxs

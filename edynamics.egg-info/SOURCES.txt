@@ -1,8 +1,0 @@
-README.md
-setup.cfg
-setup.py
-edynamics.egg-info/PKG-INFO
-edynamics.egg-info/SOURCES.txt
-edynamics.egg-info/dependency_links.txt
-edynamics.egg-info/requires.txt
-edynamics.egg-info/top_level.txt

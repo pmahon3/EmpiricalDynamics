@@ -6,25 +6,25 @@ from scipy.spatial.distance import cdist
 from tqdm import tqdm
 from datetime import datetime
 
-from edynamics.modelling_tools.embeddings import Embedding
+from edynamics.modelling_tools.embeddings import embedding
 from edynamics.modelling_tools.weighers import exponential
 from edynamics.modelling_tools.weighers import weigher
 
 
 def convergent_cross_mapping(
-        embedding_y: Embedding,
-        embedding_x: Embedding,
+        embedding_y: embedding,
+        embedding_x: embedding,
         target: str,
         library_times: [pd.Timestamp],
         prediction_times: [pd.Timestamp],
         n_partitions: int,
         weighting_kernel: weigher = exponential(theta=1)) -> pd.DataFrame:
-    """Cross maps embedding y to embedding x, providing the cross map curve to interpret whether is a 'convergent cross
+    """Cross maps Embedding y to Embedding x, providing the cross map curve to interpret whether is a 'convergent cross
     map' cause of y.
 
-    :param embedding_x: a coordinate delay embedding of variable x.
-    :param embedding_y: a coordinate delay embedding of variable y.
-    :param target: the target variable in embedding x.
+    :param embedding_x: a coordinate delay Embedding of variable x.
+    :param embedding_y: a coordinate delay Embedding of variable y.
+    :param target: the target variable in Embedding x.
     :param library_times: the set of points to draw random library samples from.
     :param prediction_times: the times to test cross mapping on.
     :param n_partitions: the number of random partitions ranging from size N/n_partitions to N where N is the length of
@@ -61,16 +61,16 @@ def convergent_cross_mapping(
 
 
 def _cross_map_step(
-        embedding_y: Embedding,
-        embedding_x: Embedding,
+        embedding_y: embedding,
+        embedding_x: embedding,
         target: str,
         indices: pd.DatetimeIndex,
         weighting_kernel: weigher) -> float:
     """Perform a cross mapping run for a given set of times.
 
-    :param embedding_x: a coordinate delay embedding of variable x.
-    :param embedding_y: a coordinate delay embedding of variable y.
-    :param target: the target variable in embedding x.
+    :param embedding_x: a coordinate delay Embedding of variable x.
+    :param embedding_y: a coordinate delay Embedding of variable y.
+    :param target: the target variable in Embedding x.
     :param weighting_kernel: the weighting kernel for the cross map estimate of the target.
     """
     cross_mapped_points = pd.DataFrame(index=indices, columns=embedding_x.block.columns, dtype=float)

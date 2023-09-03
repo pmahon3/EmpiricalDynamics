@@ -4,7 +4,7 @@ import numpy as np
 
 from scipy.linalg import pinv
 
-from edynamics.modelling_tools.embeddings import Embedding
+from edynamics.modelling_tools.embeddings import embedding
 from edynamics.modelling_tools.norms import norm
 from edynamics.modelling_tools.weighers import weigher
 from edynamics.modelling_tools.norms import minkowski
@@ -19,15 +19,11 @@ class smap(projector):
         super().__init__(norm_=norm_,
                          weigher_=weigher_)
 
-    def predict(self,
-                embedding: Embedding,
-                points: pd.DataFrame,
-                steps: int = 1,
-                step_size: int = 1) -> pd.DataFrame:
+    def predict(self, embedding_: embedding, points: pd.DataFrame, steps: int, step_size: int) -> pd.DataFrame:
         """
         Perform an S-Map projection from the given point.
 
-        :param embedding: the delay embedded system.
+        :param Embedding: the delay embedded system.
         :param points: an n-by-m pandas dataframe of m-dimensional lagged coordinate vectors, stored row-wise, to be
             projected according to the library of points.
         :param steps: the number of prediction steps to make out from for each point. By default 1.
@@ -37,7 +33,7 @@ class smap(projector):
             the second index level is the 'prediction_time', the time of the predicted point.
         """
 
-        indices = self.build_prediction_index(frequency=embedding.frequency,
+        indices = self.build_prediction_index(frequency=embedding_.frequency,
                                               index=points.index,
                                               steps=steps,
                                               step_size=step_size)
@@ -45,21 +41,21 @@ class smap(projector):
         # Run the predictions
         futures = []
         for i, point in enumerate(points.values):
-            futures.append(self._smap_step(embedding=embedding,
+            futures.append(self._smap_step(embedding_=embedding_,
                                            point=point,
                                            indices=indices[i * steps:i * steps + steps],
                                            steps=steps,
                                            step_size=step_size))
 
         # Retrieve results
-        projections = pd.DataFrame(index=indices, columns=embedding.block.columns, dtype=float)
+        projections = pd.DataFrame(index=indices, columns=embedding_.block.columns, dtype=float)
         for result in futures:
             projections.loc[result.index] = result.values
 
         return projections
 
     def _smap_step(self,
-                   embedding: Embedding,
+                   embedding_: embedding,
                    point: np.array,
                    indices: pd.MultiIndex,
                    steps: int,
@@ -78,20 +74,20 @@ class smap(projector):
             index level is the 'prediction_time', the time of the predicted point.
         """
         predictions = pd.DataFrame(index=indices,
-                                   columns=embedding.block.columns,
+                                   columns=embedding_.block.columns,
                                    dtype=float)
 
         current_time = indices[0][0]
         prediction_time = indices[0][-1]
 
         # X is the library of inputs, the embedded points up to the starting point of the prediction period
-        # y is the library of outputs, the embedding points at time t+1
-        X = embedding.block.loc[embedding.library_times][:-step_size]
-        y = embedding.block.loc[embedding.library_times][step_size:]
+        # y is the library of outputs, the Embedding points at time t+1
+        X = embedding_.block.loc[embedding_.library_times][:-step_size]
+        y = embedding_.block.loc[embedding_.library_times][step_size:]
 
         for j in range(steps):
             # Compute the weights
-            distance_matrix = self.norm.distance_matrix(embedding=embedding,
+            distance_matrix = self.norm.distance_matrix(embedding_=embedding_,
                                                         points=point[np.newaxis, :],
                                                         max_time=current_time)
 
@@ -108,7 +104,7 @@ class smap(projector):
             predictions.loc[(current_time, prediction_time)] = np.matmul(point, C)
 
             # replace predictions for lagged variables for either actual values or previous predicted values
-            predictions = self.update_values(embedding=embedding,
+            predictions = self.update_values(embedding=embedding_,
                                              predictions=predictions,
                                              current_time=current_time,
                                              prediction_time=prediction_time)

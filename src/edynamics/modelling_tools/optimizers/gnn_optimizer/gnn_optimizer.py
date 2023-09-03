@@ -1,31 +1,32 @@
 import ray
 import pandas as pd
 import numpy as np
+import logging
 
 from tqdm import tqdm
 from copy import deepcopy
 from ray.util.multiprocessing import Pool
 
-from edynamics.modelling_tools.embeddings import Embedding
+from edynamics.modelling_tools.embeddings import embedding
 from edynamics.modelling_tools.projectors import projector
 from edynamics.modelling_tools.observers import observer, lag
 
 
-def gnn_optimizer(embedding: Embedding,
-                      target: str,
-                      projector_: projector,
-                      points: pd.DataFrame,
-                      observers: [observer],
-                      steps: int = 1,
-                      step_size: int = 1,
-                      improvement_threshold: float = -np.inf,
-                      compute_pool: Pool = None,
-                      verbose: bool = False):
+def gnn_optimizer(embedding_: embedding,
+                  target: str,
+                  projector_: projector,
+                  points: pd.DataFrame,
+                  observers: [observer],
+                  steps: int = 1,
+                  step_size: int = 1,
+                  improvement_threshold: float = -np.inf,
+                  compute_pool: Pool = None,
+                  verbose: bool = False):
     """
-    Searches for the set of lags which maximize Pearson's coefficient for a set of predictions and sets the embedding
+    Searches for the set of lags which maximize Pearson's coefficient for a set of predictions and sets the Embedding
     observers to those lags.
 
-    :param embedding: the delay embedding.
+    :param embedding_: the delay Embedding.
     :param target: the variable to predict
     :param projector_: which prediction method to use.
     :param points: a dataframe, indexed by time, of the points from which to predict.
@@ -39,17 +40,20 @@ def gnn_optimizer(embedding: Embedding,
     :return: a dataframe summarizing the performance of each iteration. For each iteration the best lag added from the
     previous iteration is removed and appears as a nan in the row.
     """
+
+    logging.info(msg="Performing gnn lag optimization...")
+
     # track best skill
     best_skill = 0
 
-    # Set embedding observers
-    embedding.observers = [lag(variable_name=target, tau=0)]
+    # Set Embedding observers
+    embedding_.observers = [lag(variable_name=target, tau=0)]
 
     # todo: run first iteration as base line
     for i in range(len(observers)):
 
         # add a slot for a new lag_
-        embedding.observers = embedding.observers + [None]
+        embedding_.observers = embedding_.observers + [None]
 
         # loop over moves_remaining lags
         futures = []
@@ -57,7 +61,7 @@ def gnn_optimizer(embedding: Embedding,
             args = []
 
             for observer_ in observers:
-                embedding_copy = deepcopy(embedding)
+                embedding_copy = deepcopy(embedding_)
                 embedding_copy.observers[-1] = observer_
                 embedding_copy.compile()
 
@@ -75,16 +79,17 @@ def gnn_optimizer(embedding: Embedding,
             for _, observer_ in enumerate(pbar):
                 pbar.set_description(observer_.observation_name)
                 # add a new observer
-                embedding_copy = deepcopy(embedding)
+                embedding_copy = deepcopy(embedding_)
                 embedding_copy.observers[-1] = observer_
                 embedding_copy.compile()
 
-                futures.append(_gnn_observer_step(embedding=embedding_copy,
-                                             target=target,
-                                             projector_=projector_,
-                                             points=points,
-                                             steps=steps,
-                                             step_size=step_size))
+                futures.append(_gnn_observer_step(
+                    embedding_=embedding_copy,
+                    target=target,
+                    projector_=projector_,
+                    points=points,
+                    steps=steps,
+                    step_size=step_size))
 
         if compute_pool is not None:
             results = []
@@ -100,7 +105,7 @@ def gnn_optimizer(embedding: Embedding,
 
         # remove the best performing observer from the potential lags and add to the block lags
         observers.remove(maximum[0])
-        embedding.observers[-1] = maximum[0]
+        embedding_.observers[-1] = maximum[0]
         best_skill = maximum[1]
 
         if verbose:
@@ -109,29 +114,30 @@ def gnn_optimizer(embedding: Embedding,
         # check early stopping improvement
         sigs = len(str(improvement_threshold).split('.')[1])
         if round(improvement, sigs) < improvement_threshold:
-            embedding.observers = embedding.observers[:-1]
-            print('Early Stopping:\t' + str([obs.observation_name for obs in embedding.observers]))
+            embedding_.observers = embedding_.observers[:-1]
+            print('Early Stopping:\t' + str([obs.observation_name for obs in embedding_.observers]))
             break
 
-    return embedding.observers
+    logging.info("Gnn lag optimization complete.")
+    return embedding_.observers
 
 
-def _gnn_observer_step(embedding: Embedding,
-                  target: str,
-                  projector_: projector,
-                  points: pd.DataFrame,
-                  steps: int = 1,
-                  step_size: int = 1) -> float:
+def _gnn_observer_step(embedding_: embedding,
+                       target: str,
+                       projector_: projector,
+                       points: pd.DataFrame,
+                       steps: int = 1,
+                       step_size: int = 1) -> float:
     # predict
-    x = embedding.get_points(times=points.index)
+    x = embedding_.get_points(times=points.index)
     y_hat = projector_.predict(
-        embedding=embedding,
+        embedding_=embedding_,
         points=x,
         steps=steps,
         step_size=step_size)
 
     # compute prediction skill
-    y = embedding.get_points(times=y_hat.droplevel(level=0).index)
+    y = embedding_.get_points(times=y_hat.droplevel(level=0).index)
     rho = (y_hat[target].droplevel('Current_Time').corr(y[target]))
 
     return rho
@@ -139,15 +145,15 @@ def _gnn_observer_step(embedding: Embedding,
 
 @ray.remote
 def _gnn_observer_parallel_step(
-        embedding: Embedding,
+        embedding_: embedding,
         target: str,
         projector_: projector,
         points: pd.DataFrame,
         steps: int = 1,
         step_size: int = 1) -> float:
-    return _gnn_observer_step(embedding=embedding,
-                         target=target,
-                         projector_=projector_,
-                         points=points,
-                         steps=steps,
-                         step_size=step_size)
+    return _gnn_observer_step(embedding_=embedding_,
+                              target=target,
+                              projector_=projector_,
+                              points=points,
+                              steps=steps,
+                              step_size=step_size)
