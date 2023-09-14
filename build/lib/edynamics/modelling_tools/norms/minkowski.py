@@ -2,17 +2,17 @@ import numpy as np
 import pandas as pd
 from scipy.spatial import distance_matrix
 
-from .norm import Norm
+from .norm import norm
 
 from edynamics.modelling_tools.embeddings import Embedding
 
 
-class minkowski(Norm):
+class minkowski(norm):
     def __init__(self, p: int = 2):
         """
-        The minkowski p Norm. (I.e. for p=2, the euclidean Norm)
+        The minkowski p norm. (I.e. for p=2, the euclidean norm)
 
-        :param p: which power p to to use for the Norm
+        :param p: which power p to to use for the norm
         """
         self.p = p
 

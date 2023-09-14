@@ -1,1 +1,1 @@
-from .embedding import embedding
+from .embedding import Embedding

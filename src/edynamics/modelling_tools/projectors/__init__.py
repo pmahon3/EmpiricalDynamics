@@ -1,3 +1,3 @@
-from .knn import knn
-from .smap import smap
-from .projector import projector
+from .knn import Knn
+from .smap import Smap
+from .projector import Projector

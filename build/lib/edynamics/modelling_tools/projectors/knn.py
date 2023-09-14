@@ -10,7 +10,7 @@ from edynamics.modelling_tools.weighers import weigher
 from scipy.spatial.distance import cdist
 
 
-class Knn(projector):
+class knn(projector):
     def __init__(self,
                  norm_: norm,
                  weigher_: weigher,
@@ -20,7 +20,11 @@ class Knn(projector):
                          weigher_=weigher_)
         self.k = k
 
-    def predict(self, embedding: Embedding, points: pd.DataFrame, steps: int, step_size: int) -> pd.DataFrame:
+    def predict(self,
+                embedding: Embedding,
+                points: pd.DataFrame,
+                steps: int = 1,
+                step_size: int = 1) -> pd.DataFrame:
         """
         Perform a k projection for each of the given points.
 
@@ -53,7 +57,7 @@ class Knn(projector):
                         max_time=current_time,
                         knn=self.k)
 
-                    # todo can self.Norm.distance_matrix be modified for this use case?
+                    # todo can self.norm.distance_matrix be modified for this use case?
                     weights = self.weigher.weigh(distance_matrix=cdist(point[np.newaxis, :],
                                                                        embedding.block.iloc[knn_idxs].values))
 

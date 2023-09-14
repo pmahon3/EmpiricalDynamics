@@ -4,7 +4,7 @@ import pandas as pd
 from ray.util.multiprocessing import Pool
 
 from edynamics.modelling_tools.embeddings import Embedding
-from edynamics.modelling_tools.projectors import Projector
+from edynamics.modelling_tools.projectors import projector
 from edynamics.modelling_tools.observers import lag
 
 from copy import deepcopy
@@ -13,7 +13,7 @@ from ray.util.multiprocessing import Pool
 
 
 def dimensionality(embedding: Embedding,
-                   projector: Projector,
+                   projector_: projector,
                    target: str,
                    points: pd.DataFrame,
                    dimensions: int = 10,
@@ -25,8 +25,8 @@ def dimensionality(embedding: Embedding,
     skill.
 
     :param Embedding embedding: the delay embedded block.
-    :param projector projector: which prediction method to use.
-    :param str target: which embedding variable to predict.
+    :param projector projector_: which prediction method to use.
+    :param str target: which Embedding variable to predict.
     :param pd.DataFrame points: the points for which to evaluate the prediction skill on.
     :param int dimensions: the maximum number of lags to add to the model.
     :param int steps: the number of steps in a multistep prediction to make where successive predictions are made
@@ -52,13 +52,13 @@ def dimensionality(embedding: Embedding,
     if compute_pool is not None:
         args = []
         for i in range(dimensions):
-            embedding_copy = deepcopy(embedding)
-            embedding_copy.observers = lags[:i + 1]
-            embedding_copy.compile()
-            points_ = embedding_copy.get_points(times=points.index)
+            embedding_ = deepcopy(embedding)
+            embedding_.observers = lags[:i + 1]
+            embedding_.compile()
+            points_ = embedding_.get_points(times=points.index)
 
-            args.append([embedding_copy,
-                         projector,
+            args.append([embedding_,
+                         projector_,
                          target,
                          points_,
                          steps,
@@ -70,14 +70,17 @@ def dimensionality(embedding: Embedding,
         pbar = tqdm(range(dimensions), leave=True)
         for i in pbar:
             pbar.set_description('E = ' + str(i + 1))
-            embedding_copy = deepcopy(embedding)
-            embedding_copy.observers = lags[:i + 1]
-            embedding_copy.compile()
-            points_ = embedding_copy.get_points(times=points.index)
+            embedding_ = deepcopy(embedding)
+            embedding_.observers = lags[:i + 1]
+            embedding_.compile()
+            points_ = embedding_.get_points(times=points.index)
 
-            futures.append(
-                dimensionality_step(embedding=embedding_copy, projector=projector, target=target, points=points_, steps=steps,
-                                    step_size=step_size))
+            futures.append(dimensionality_step(embedding=embedding_,
+                                               projector_=projector_,
+                                               target=target,
+                                               points=points_,
+                                               steps=steps,
+                                               step_size=step_size))
 
     if compute_pool is not None:
         results = []
@@ -97,15 +100,15 @@ def dimensionality(embedding: Embedding,
 
 
 def dimensionality_step(embedding: Embedding,
-                        projector: Projector,
+                        projector_: projector,
                         target: str,
                         points: pd.DataFrame,
                         steps: int,
                         step_size: int) -> float:
-    y_hat = projector.predict(embedding=embedding,
-                              points=points,
-                              steps=steps,
-                              step_size=step_size)
+    y_hat = projector_.predict(embedding=embedding,
+                               points=points,
+                               steps=steps,
+                               step_size=step_size)
 
     y = embedding.data.loc[y_hat.index.droplevel(level=0)][target]
 
@@ -114,10 +117,14 @@ def dimensionality_step(embedding: Embedding,
 
 @ray.remote
 def dimensionality_parallel_step(embedding: Embedding,
-                                 projector: Projector,
+                                 projector_: projector,
                                  target: str,
                                  points: pd.DataFrame,
                                  steps: int,
                                  step_size: int) -> float:
-    return dimensionality_step(embedding=embedding, projector=projector, target=target, points=points, steps=steps,
+    return dimensionality_step(embedding=embedding,
+                               projector_=projector_,
+                               target=target,
+                               points=points,
+                               steps=steps,
                                step_size=step_size)

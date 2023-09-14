@@ -82,7 +82,7 @@ def _cross_map_step(
                                                         max_time=max(embedding_y.library_times))
         knn_times = embedding_y.block.index[knn_idxs]
 
-        # todo: generalize Norm.distance function to handle this use case
+        # todo: generalize norm.distance function to handle this use case
         point = embedding_y.get_points([time]).values
         weights = weighting_kernel.weigh(cdist(point, embedding_y.block.loc[knn_times].values)[0])
 

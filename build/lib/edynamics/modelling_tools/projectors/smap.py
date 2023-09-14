@@ -1,4 +1,4 @@
-from .projector import Projector
+from .projector import projector
 import pandas as pd
 import numpy as np
 
@@ -11,14 +11,19 @@ from edynamics.modelling_tools.norms import minkowski
 from edynamics.modelling_tools.weighers import exponential
 
 
-class Smap(Projector):
+class smap(projector):
     def __init__(self,
                  norm_: norm = minkowski(p=2),
                  weigher_: weigher = exponential(theta=0.0)):
 
-        super().__init__(norm=norm_, weigher_=weigher_)
+        super().__init__(norm_=norm_,
+                         weigher_=weigher_)
 
-    def predict(self, embedding: Embedding, points: pd.DataFrame, steps: int, step_size: int) -> pd.DataFrame:
+    def predict(self,
+                embedding: Embedding,
+                points: pd.DataFrame,
+                steps: int = 1,
+                step_size: int = 1) -> pd.DataFrame:
         """
         Perform an S-Map projection from the given point.
 

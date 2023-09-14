@@ -1,13 +1,12 @@
 import numpy as np
 import pandas as pd
-import logging
 
 from scipy.spatial import cKDTree
 
 from edynamics.modelling_tools.observers import observer
 
 
-class Embedding:
+class embedding:
     def __init__(self,
                  data: pd.DataFrame,
                  observers: [observer],
@@ -18,6 +17,9 @@ class Embedding:
 
         :param pd.DataFrame data: data to be embedded.
         :param [observer] observers: list of observation functions for the Embedding
+        :param pd.Timestamp library_times: the set of times determining the Embedding library.
+        :param Callable[pd.Timestamp, Callable] mask: a function that, taking a pandas timestamp, returns a function
+            that can be used to filter the block for observations of the given timestamp type.
         """
 
         self.data = data
@@ -31,18 +33,14 @@ class Embedding:
         #: int: dimension of the Embedding, equal to the length of the list of observation functions.
         self.dimension: int = len(observers)
         #: scipy.spatial.cKDTree: a KDTree storing the distances between all pairs of library points for the delay
-        # Embedding using the l2 Norm in R^n where n is the Embedding dimension (i.e. number of lags, len(self.lags))
+        # Embedding using the l2 norm in R^n where n is the Embedding dimension (i.e. number of lags, len(self.lags))
         self.distance_tree: cKDTree = None
-
-        logging.info(msg="Embedding created.")
 
     # PUBLIC
     def compile(self) -> None:
         """
         Builds the Embedding block according to the observations functions.
         """
-
-        logging.info(msg="Compiling embedding...")
 
         self.block = pd.DataFrame(columns=[obs.observation_name for obs in self.observers], index=self.library_times)
 
@@ -57,8 +55,6 @@ class Embedding:
 
         # build the KDTree
         self.distance_tree = cKDTree(self.block.iloc[:-1])
-
-        logging.info(msg="Embedding compiled.")
 
     def get_points(self,
                    times: [pd.Timestamp]) -> pd.DataFrame:
@@ -111,6 +107,7 @@ class Embedding:
 
                     count += 1
 
+            # todo: wtf is this?
             k = [k[-1] + 1]
 
         return knn_idxs
