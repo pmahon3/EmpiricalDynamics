@@ -1,5 +1,12 @@
 from setuptools import setup, find_packages
-requirements = [i.strip() for i in open("requirements.txt").readlines()]
+requirements = [
+    "numpy>=1.24.2",
+    "pandas>=1.5.3",
+    "ray>=2.2.0",
+    "scipy>=1.8.0",
+    "setuptools>=57.0.0",
+    "tqdm>=4.64.1"
+]
 
 # Setting up
 setup(

@@ -6,21 +6,21 @@ import ray
 
 from edynamics.modelling_tools.embeddings import Embedding
 from edynamics.modelling_tools.norms import Norm
-from edynamics.modelling_tools.weighers import weigher
+from edynamics.modelling_tools.kernels import Kernel
 
 
 class Projector(abc.ABC):
     def __init__(self,
                  norm: Norm,
-                 weigher_: weigher):
+                 kernel: Kernel):
         """
         Abstract class defining state space based prediction strategies.
 
         :param norm: which vector Norm to use.
-        :param weigher_: which weighting kernel to use.
+        :param kernel: which weighting kernel to use.
         """
         self.norm = norm
-        self.weigher = weigher_
+        self.weigher = kernel
 
     @abc.abstractmethod
     def predict(self,

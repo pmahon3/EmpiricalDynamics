@@ -1,0 +1,22 @@
+[build-system]
+requires = [
+    "setuptools>=61.0",
+    "numpy>=1.24.2",
+    "pandas>=1.5.3",
+    "ray>=2.2.0",
+    "scipy>=1.8.0",
+    "tqdm>=4.64.1"
+]
+
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edynamics"
+version = "0.3.13"
+description = "Empirical dynamic modelling - modular, parallel, object-oriented"
+authors = [{name="Patrick Mahon", email="pmahon@sfu.ca"}]
+requires-python = ">=3.6"
+readme="README.md"
+
+[tool.setuptools.packages.find]
+where=["src"]

@@ -3,7 +3,7 @@ import numpy as np
 import abc
 
 
-class observer(abc.ABC):
+class Observer(abc.ABC):
     def __init__(self, variable_name: str):
         self.variable_name = variable_name
         self.observation_name: str = None

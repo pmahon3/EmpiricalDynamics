@@ -8,15 +8,15 @@ from copy import deepcopy
 from ray.util.multiprocessing import Pool
 
 from edynamics.modelling_tools.embeddings import Embedding
-from edynamics.modelling_tools.projectors import projector
-from edynamics.modelling_tools.observers import observer, lag
+from edynamics.modelling_tools.projectors import Projector
+from edynamics.modelling_tools.observers import Observer, lag
 
 
 def gnn_optimizer(embedding: Embedding,
                   target: str,
-                  projector_: projector,
+                  projector: Projector,
                   points: pd.DataFrame,
-                  observers: [observer],
+                  observers: [Observer],
                   steps: int = 1,
                   step_size: int = 1,
                   improvement_threshold: float = -np.inf,
@@ -28,7 +28,7 @@ def gnn_optimizer(embedding: Embedding,
 
     :param embedding: the delay Embedding.
     :param target: the variable to predict
-    :param projector_: which prediction method to use.
+    :param projector: which prediction method to use.
     :param points: a dataframe, indexed by time, of the points from which to predict.
     :param improvement_threshold: the minimum improvement from the previous round to continue optimizing.
     :param observers: the set of observers, excluding the target, to optimize over
@@ -41,33 +41,33 @@ def gnn_optimizer(embedding: Embedding,
     previous iteration is removed and appears as a nan in the row.
     """
 
-    logging.info(msg="Performing gnn lag optimization...")
+    logging.info(msg="Performing gnn optimization...")
 
     # track best skill
     best_skill = 0
 
-    # Set Embedding observers
-    embedding_.observers = [lag(variable_name=target, tau=0)]
+    # Initialize the embedding with the t=0 lag (i.e. just the regular time series)
+    embedding.observers = [lag(variable_name=target, tau=0)]
 
     # todo: run first iteration as base line
     for i in range(len(observers)):
 
         # add a slot for a new lag_
-        embedding_.observers = embedding_.observers + [None]
+        embedding.observers = embedding.observers + [None]
 
         # loop over moves_remaining lags
         futures = []
         if compute_pool is not None:
             args = []
 
-            for observer_ in observers:
-                embedding_copy = deepcopy(embedding_)
-                embedding_copy.observers[-1] = observer_
+            for observer in observers:
+                embedding_copy = deepcopy(embedding)
+                embedding_copy.observers[-1] = observer
                 embedding_copy.compile()
 
                 args.append([embedding_copy,
                              target,
-                             projector_,
+                             projector,
                              points,
                              steps,
                              step_size])
@@ -76,20 +76,16 @@ def gnn_optimizer(embedding: Embedding,
 
         else:
             pbar = tqdm(observers, leave=False)
-            for _, observer_ in enumerate(pbar):
-                pbar.set_description(observer_.observation_name)
+            for _, observer in enumerate(pbar):
+                pbar.set_description(observer.observation_name)
                 # add a new observer
-                embedding_copy = deepcopy(embedding_)
-                embedding_copy.observers[-1] = observer_
+                embedding_copy = deepcopy(embedding)
+                embedding_copy.observers[-1] = observer
                 embedding_copy.compile()
 
-                futures.append(_gnn_observer_step(
-                    embedding_=embedding_copy,
-                    target=target,
-                    projector_=projector_,
-                    points=points,
-                    steps=steps,
-                    step_size=step_size))
+                futures.append(
+                    _gnn_observer_step(embedding=embedding_copy, target=target, projector=projector, points=points,
+                                       steps=steps, step_size=step_size))
 
         if compute_pool is not None:
             results = []
@@ -105,7 +101,7 @@ def gnn_optimizer(embedding: Embedding,
 
         # remove the best performing observer from the potential lags and add to the block lags
         observers.remove(maximum[0])
-        embedding_.observers[-1] = maximum[0]
+        embedding.observers[-1] = maximum[0]
         best_skill = maximum[1]
 
         if verbose:
@@ -122,22 +118,22 @@ def gnn_optimizer(embedding: Embedding,
     return embedding_.observers
 
 
-def _gnn_observer_step(embedding_: embedding,
+def _gnn_observer_step(embedding: Embedding,
                        target: str,
-                       projector_: projector,
+                       projector: Projector,
                        points: pd.DataFrame,
                        steps: int = 1,
                        step_size: int = 1) -> float:
     # predict
     x = embedding_.get_points(times=points.index)
-    y_hat = projector_.predict(
-        embedding_=embedding_,
+    y_hat = projector.predict(
+        embedding=embedding,
         points=x,
         steps=steps,
         step_size=step_size)
 
     # compute prediction skill
-    y = embedding_.get_points(times=y_hat.droplevel(level=0).index)
+    y = embedding.get_points(times=y_hat.droplevel(level=0).index)
     rho = (y_hat[target].droplevel('Current_Time').corr(y[target]))
 
     return rho
@@ -145,15 +141,11 @@ def _gnn_observer_step(embedding_: embedding,
 
 @ray.remote
 def _gnn_observer_parallel_step(
-        embedding_: embedding,
+        embedding: Embedding,
         target: str,
-        projector_: projector,
+        projector: Projector,
         points: pd.DataFrame,
         steps: int = 1,
         step_size: int = 1) -> float:
-    return _gnn_observer_step(embedding_=embedding_,
-                              target=target,
-                              projector_=projector_,
-                              points=points,
-                              steps=steps,
+    return _gnn_observer_step(embedding=embedding, target=target, projector=projector, points=points, steps=steps,
                               step_size=step_size)

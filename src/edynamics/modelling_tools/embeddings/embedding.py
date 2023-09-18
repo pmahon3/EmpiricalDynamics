@@ -4,13 +4,13 @@ import logging
 
 from scipy.spatial import cKDTree
 
-from edynamics.modelling_tools.observers import observer
+from edynamics.modelling_tools.observers import Observer
 
 
 class Embedding:
     def __init__(self,
                  data: pd.DataFrame,
-                 observers: [observer],
+                 observers: [Observer],
                  library_times: [pd.Timestamp]
                  ):
         """

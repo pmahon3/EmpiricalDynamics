@@ -5,18 +5,18 @@ import numpy as np
 from scipy.linalg import pinv
 
 from edynamics.modelling_tools.embeddings import Embedding
-from edynamics.modelling_tools.norms import norm
-from edynamics.modelling_tools.weighers import weigher
+from edynamics.modelling_tools.norms import Norm
+from edynamics.modelling_tools.kernels import Kernel
 from edynamics.modelling_tools.norms import minkowski
-from edynamics.modelling_tools.weighers import exponential
+from edynamics.modelling_tools.kernels import exponential
 
 
-class Smap(Projector):
+class smap(Projector):
     def __init__(self,
-                 norm_: norm = minkowski(p=2),
-                 weigher_: weigher = exponential(theta=0.0)):
+                 norm: Norm = minkowski(p=2),
+                 kernel: Kernel = exponential(theta=0.0)):
 
-        super().__init__(norm=norm_, weigher_=weigher_)
+        super().__init__(norm=norm, kernel=kernel)
 
     def predict(self, embedding: Embedding, points: pd.DataFrame, steps: int, step_size: int) -> pd.DataFrame:
         """
@@ -89,9 +89,7 @@ class Smap(Projector):
             distance_matrix = self.norm.distance_matrix(embedding=embedding,
                                                         points=point[np.newaxis, :],
                                                         max_time=current_time)
-
             weights = self.weigher.weigh(distance_matrix=distance_matrix)[:-step_size]
-
             weights[np.isnan(weights)] = 0.0
 
             # A is the product of the weights and the library X points, A = w * X
@@ -99,7 +97,8 @@ class Smap(Projector):
             # B is the product of the weights and the library y points, A = w * y
             B = weights * y.values
             # Solve for C in B=AC via SVD
-            C = np.matmul(pinv(A), B)
+            C = np.linalg.lstsq(A, B, rcond=None)[0]
+
             predictions.loc[(current_time, prediction_time)] = np.matmul(point, C)
 
             # replace predictions for lagged variables for either actual values or previous predicted values

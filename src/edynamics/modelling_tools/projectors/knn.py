@@ -1,23 +1,22 @@
-from .projector import projector
+from .projector import Projector
 
 import numpy as np
 import pandas as pd
 
 from edynamics.modelling_tools.embeddings import Embedding
-from edynamics.modelling_tools.norms import norm
-from edynamics.modelling_tools.weighers import weigher
+from edynamics.modelling_tools.norms import Norm
+from edynamics.modelling_tools.kernels import Kernel
 
 from scipy.spatial.distance import cdist
 
 
-class Knn(projector):
+class knn(Projector):
     def __init__(self,
-                 norm_: norm,
-                 weigher_: weigher,
+                 norm: Norm,
+                 kernel: Kernel,
                  k: int):
 
-        super().__init__(norm_=norm_,
-                         weigher_=weigher_)
+        super().__init__(norm=norm, kernel=kernel)
         self.k = k
 
     def predict(self, embedding: Embedding, points: pd.DataFrame, steps: int, step_size: int) -> pd.DataFrame:
@@ -54,11 +53,11 @@ class Knn(projector):
                         knn=self.k)
 
                     # todo can self.Norm.distance_matrix be modified for this use case?
-                    weights = self.weigher.weigh(distance_matrix=cdist(point[np.newaxis, :],
+                    weights = self.kernel.weigh(distance_matrix=cdist(point[np.newaxis, :],
                                                                        embedding.block.iloc[knn_idxs].values))
 
                     predictions.loc[(current_time, prediction_time)] = \
-                        np.matmul(weights, embedding.block.iloc[knn_idxs + step_size].values) / weights.sum()
+                        np.dot(weights, embedding.block.iloc[knn_idxs + step_size].values) / weights.sum()
 
                     if steps > 1:
                         predictions = self.update_values(embedding=embedding,

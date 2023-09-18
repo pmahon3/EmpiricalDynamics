@@ -1,9 +1,9 @@
-from .observer import observer
+from .observer import Observer
 import pandas as pd
 import numpy as np
 
 
-class lag(observer):
+class lag(Observer):
     def __init__(self, variable_name: str, tau: int):
         """
         The lagged observation function. Observes the given variable at some non-positive specified multiple of the
@@ -52,7 +52,7 @@ class lag(observer):
         hash((self.variable_name, self.tau))
 
 
-class lag_moving_average(observer):
+class lag_moving_average(Observer):
     def __init__(self, variable_name: str, q: int, tau: int = -1):
         super().__init__(variable_name)
 
