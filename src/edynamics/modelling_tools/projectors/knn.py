@@ -11,15 +11,13 @@ from scipy.spatial.distance import cdist
 
 
 class knn(Projector):
-    def __init__(self,
-                 norm: Norm,
-                 kernel: Kernel,
-                 k: int):
-
+    def __init__(self, norm: Norm, kernel: Kernel, k: int):
         super().__init__(norm=norm, kernel=kernel)
         self.k = k
 
-    def predict(self, embedding: Embedding, points: pd.DataFrame, steps: int, step_size: int) -> pd.DataFrame:
+    def predict(
+        self, embedding: Embedding, points: pd.DataFrame, steps: int, step_size: int
+    ) -> pd.DataFrame:
         """
         Perform a k projection for each of the given points.
 
@@ -33,13 +31,15 @@ class knn(Projector):
         if self.k is None:
             self.k = embedding.dimension
 
-        indices = self.build_prediction_index(frequency=embedding.frequency,
-                                              index=points.index,
-                                              steps=steps,
-                                              step_size=step_size)
-        predictions = pd.DataFrame(index=indices,
-                                   columns=embedding.block.columns,
-                                   dtype=float)
+        indices = self.build_prediction_index(
+            frequency=embedding.frequency,
+            index=points.index,
+            steps=steps,
+            step_size=step_size,
+        )
+        predictions = pd.DataFrame(
+            index=indices, columns=embedding.block.columns, dtype=float
+        )
 
         for i in range(len(points)):
             current_time = indices[i * steps][0]
@@ -48,22 +48,30 @@ class knn(Projector):
                 try:
                     prediction_time = indices[i * steps + j][-1]
                     knn_idxs = embedding.get_k_nearest_neighbours(
-                        point=point,
-                        max_time=current_time,
-                        knn=self.k)
+                        point=point, max_time=current_time, knn=self.k
+                    )
 
                     # todo can self.Norm.distance_matrix be modified for this use case?
-                    weights = self.kernel.weigh(distance_matrix=cdist(point[np.newaxis, :],
-                                                                       embedding.block.iloc[knn_idxs].values))
+                    weights = self.kernel.weigh(
+                        distance_matrix=cdist(
+                            point[np.newaxis, :], embedding.block.iloc[knn_idxs].values
+                        )
+                    )
 
-                    predictions.loc[(current_time, prediction_time)] = \
-                        np.dot(weights, embedding.block.iloc[knn_idxs + step_size].values) / weights.sum()
+                    predictions.loc[(current_time, prediction_time)] = (
+                        np.dot(
+                            weights, embedding.block.iloc[knn_idxs + step_size].values
+                        )
+                        / weights.sum()
+                    )
 
                     if steps > 1:
-                        predictions = self.update_values(embedding=embedding,
-                                                         predictions=predictions,
-                                                         current_time=current_time,
-                                                         prediction_time=prediction_time)
+                        predictions = self.update_values(
+                            embedding=embedding,
+                            predictions=predictions,
+                            current_time=current_time,
+                            prediction_time=prediction_time,
+                        )
                         point = predictions.loc[(current_time, prediction_time)].values
                 except IndexError:
                     continue

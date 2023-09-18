@@ -9,15 +9,11 @@ class Observer(abc.ABC):
         self.observation_name: str = None
 
     @abc.abstractmethod
-    def observe(self,
-                data: pd.DataFrame,
-                time: pd.Timestamp) -> np.array:
+    def observe(self, data: pd.DataFrame, time: pd.Timestamp) -> np.array:
         pass
 
     @abc.abstractmethod
-    def observation_times(self,
-                          frequency: pd.DatetimeIndex.freq,
-                          time: pd.Timestamp):
+    def observation_times(self, frequency: pd.DatetimeIndex.freq, time: pd.Timestamp):
         pass
 
     @abc.abstractmethod

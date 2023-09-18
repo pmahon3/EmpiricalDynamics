@@ -18,7 +18,7 @@ class lag(Observer):
         if tau == 0:
             self.observation_name = variable_name
         else:
-            self.observation_name = variable_name + '_(t' + str(tau) + ')'
+            self.observation_name = variable_name + "_(t" + str(tau) + ")"
 
     def __str__(self):
         return f"Lag(var_name={self.variable_name},tau={self.tau})"
@@ -33,9 +33,9 @@ class lag(Observer):
         """
         return data.loc[time + data.index.freq * self.tau][self.variable_name]
 
-    def observation_times(self,
-                          frequency: pd.DatetimeIndex.freq,
-                          time: pd.Timestamp) -> [pd.Timestamp]:
+    def observation_times(
+        self, frequency: pd.DatetimeIndex.freq, time: pd.Timestamp
+    ) -> [pd.Timestamp]:
         """
         Determines the lagged time of the observation function given an observation time
 
@@ -61,16 +61,26 @@ class lag_moving_average(Observer):
         if tau == 0 and q == 0:
             self.observation_name = variable_name
         else:
-            self.observation_name = variable_name + '_(MA_q=' + str(q) + '_\u03C4=' + str(tau) + ')'
+            self.observation_name = (
+                variable_name + "_(MA_q=" + str(q) + "_\u03C4=" + str(tau) + ")"
+            )
 
     def observe(self, data: pd.DataFrame, time: pd.Timestamp) -> np.array:
-        return data.loc[time + data.index.freq * self.q * self.tau:time][::self.tau].mean().values[0]
+        return (
+            data.loc[time + data.index.freq * self.q * self.tau : time][:: self.tau]
+            .mean()
+            .values[0]
+        )
 
     def observation_times(self, frequency: pd.DatetimeIndex.freq, time: pd.Timestamp):
-        return [time + frequency * self.tau * i for i in range(self.q+1)]
+        return [time + frequency * self.tau * i for i in range(self.q + 1)]
 
     def __eq__(self, other):
-        return self.variable_name == other.variable_name and self.q == other.q and self.tau == other.tau
+        return (
+            self.variable_name == other.variable_name
+            and self.q == other.q
+            and self.tau == other.tau
+        )
 
     def __hash__(self):
         hash((self.variable_name, self.tau, self.q))

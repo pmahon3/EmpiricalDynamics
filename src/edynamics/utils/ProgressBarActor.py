@@ -7,6 +7,7 @@ import ray
 
 # For typing purposes
 
+
 @ray.remote
 class ProgressBarActor:
     counter: int

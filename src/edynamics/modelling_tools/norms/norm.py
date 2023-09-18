@@ -8,10 +8,9 @@ from edynamics.modelling_tools.embeddings import Embedding
 
 class Norm(abc.ABC):
     @abc.abstractmethod
-    def distance_matrix(self,
-                        embedding: Embedding,
-                        points: np.ndarray,
-                        max_time: pd.Timestamp) -> np.ndarray:
+    def distance_matrix(
+        self, embedding: Embedding, points: np.ndarray, max_time: pd.Timestamp
+    ) -> np.ndarray:
         """
         Abstract method defining computation of distance matrices from a given set of points to other points in a
         delay Embedding.

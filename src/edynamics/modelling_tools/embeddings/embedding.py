@@ -8,11 +8,9 @@ from edynamics.modelling_tools.observers import Observer
 
 
 class Embedding:
-    def __init__(self,
-                 data: pd.DataFrame,
-                 observers: [Observer],
-                 library_times: [pd.Timestamp]
-                 ):
+    def __init__(
+        self, data: pd.DataFrame, observers: [Observer], library_times: [pd.Timestamp]
+    ):
         """
         Defines a state space Embedding of generic observer functions from a set of data.
 
@@ -44,11 +42,20 @@ class Embedding:
 
         logging.info(msg="Compiling embedding...")
 
-        self.block = pd.DataFrame(columns=[obs.observation_name for obs in self.observers], index=self.library_times)
+        self.block = pd.DataFrame(
+            columns=[obs.observation_name for obs in self.observers],
+            index=self.library_times,
+        )
 
         # build the Embedding block
         for obs in self.observers:
-            obs_data = list(map(obs.observe, [self.data for _ in range(len(self.library_times))], self.library_times))
+            obs_data = list(
+                map(
+                    obs.observe,
+                    [self.data for _ in range(len(self.library_times))],
+                    self.library_times,
+                )
+            )
 
             self.block[obs.observation_name] = obs_data
 
@@ -60,8 +67,7 @@ class Embedding:
 
         logging.info(msg="Embedding compiled.")
 
-    def get_points(self,
-                   times: [pd.Timestamp]) -> pd.DataFrame:
+    def get_points(self, times: [pd.Timestamp]) -> pd.DataFrame:
         """
         Retrieves the embedded state space points for a given set of times.
 
@@ -71,9 +77,11 @@ class Embedding:
         if self.observers is None:
             return self.data.loc[times]
 
-        points = pd.DataFrame(index=times,
-                              columns=[obs.observation_name for obs in self.observers],
-                              dtype=float)
+        points = pd.DataFrame(
+            index=times,
+            columns=[obs.observation_name for obs in self.observers],
+            dtype=float,
+        )
 
         for time in times:
             for obs in self.observers:
@@ -81,15 +89,12 @@ class Embedding:
 
         return points
 
-    def set_library(self,
-                    library_times: [pd.Timestamp]):
-
+    def set_library(self, library_times: [pd.Timestamp]):
         self.library_times = library_times
 
-    def get_k_nearest_neighbours(self,
-                                 point: np.array,
-                                 max_time: pd.Timestamp,
-                                 knn: int) -> [int]:
+    def get_k_nearest_neighbours(
+        self, point: np.array, max_time: pd.Timestamp, knn: int
+    ) -> [int]:
         """
         Returns the k nearest neighbours of the Embedding and their distances to the given embedded point The time
         index of the neighbours is less than the given maximum time.

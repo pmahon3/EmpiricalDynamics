@@ -1,5 +1,6 @@
 # Source: https://docs.ray.io/en/releases-1.11.0/ray-core/examples/progress_bar.html
 import ray
+
 # For typing purposes
 from ray.actor import ActorHandle
 from tqdm import tqdm

@@ -16,10 +16,9 @@ class minkowski(Norm):
         """
         self.p = p
 
-    def distance_matrix(self,
-                        embedding: Embedding,
-                        points: np.array,
-                        max_time: pd.Timestamp) -> np.ndarray:
+    def distance_matrix(
+        self, embedding: Embedding, points: np.array, max_time: pd.Timestamp
+    ) -> np.ndarray:
         """
         Returns the distance matrix from given points to the embedded points.
 
@@ -30,4 +29,8 @@ class minkowski(Norm):
         :return: the distance matrix from points to each Embedding points. The ij-th entry gives the distances from the
             i-th point in points to the j-th point in the Embedding.
         """
-        return distance_matrix(embedding.block.loc[min(embedding.library_times):max_time].values, points, p=self.p)
+        return distance_matrix(
+            embedding.block.loc[min(embedding.library_times) : max_time].values,
+            points,
+            p=self.p,
+        )

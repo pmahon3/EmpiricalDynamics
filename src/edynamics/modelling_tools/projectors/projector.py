@@ -10,9 +10,7 @@ from edynamics.modelling_tools.kernels import Kernel
 
 
 class Projector(abc.ABC):
-    def __init__(self,
-                 norm: Norm,
-                 kernel: Kernel):
+    def __init__(self, norm: Norm, kernel: Kernel):
         """
         Abstract class defining state space based prediction strategies.
 
@@ -23,11 +21,9 @@ class Projector(abc.ABC):
         self.weigher = kernel
 
     @abc.abstractmethod
-    def predict(self,
-                embedding: Embedding,
-                points: pd.DataFrame,
-                steps: int,
-                step_size: int) -> pd.DataFrame:
+    def predict(
+        self, embedding: Embedding, points: pd.DataFrame, steps: int, step_size: int
+    ) -> pd.DataFrame:
         """
         Abstract method defining state spaced based prediction methods for predictions of delay Embedding points
         :param embedding: the state space Embedding.
@@ -40,10 +36,12 @@ class Projector(abc.ABC):
         raise NotImplementedError
 
     @staticmethod
-    def update_values(embedding: Embedding,
-                      predictions: pd.DataFrame,
-                      current_time: np.datetime64,
-                      prediction_time: np.datetime64) -> pd.DataFrame:
+    def update_values(
+        embedding: Embedding,
+        predictions: pd.DataFrame,
+        current_time: np.datetime64,
+        prediction_time: np.datetime64,
+    ) -> pd.DataFrame:
         """
         Updates a given predicted point in a predicted data block by replacing the variables with either the
         actual variables, if available, or the projected variables from previous predictions.
@@ -51,14 +49,19 @@ class Projector(abc.ABC):
         """
         for obs in embedding.observers:
             # Get the times needed to make an observation for this observer at this prediction time
-            obs_times = obs.observation_times(frequency=embedding.frequency, time=prediction_time)
+            obs_times = obs.observation_times(
+                frequency=embedding.frequency, time=prediction_time
+            )
 
             unobserved = [time for time in obs_times if time > current_time]
             observed = [time for time in obs_times if time <= current_time]
 
-            data = pd.concat([predictions.loc[current_time].loc[unobserved][obs.variable_name],
-                              embedding.data.loc[observed][obs.variable_name],
-                              ]).to_frame()
+            data = pd.concat(
+                [
+                    predictions.loc[current_time].loc[unobserved][obs.variable_name],
+                    embedding.data.loc[observed][obs.variable_name],
+                ]
+            ).to_frame()
 
             data.sort_index(inplace=True)
             hit = False
@@ -68,16 +71,16 @@ class Projector(abc.ABC):
             else:
                 data.index.freq = embedding.frequency
 
-            predictions.loc[(current_time, prediction_time)][obs.observation_name] = obs.observe(data=data,
-                                                                                                 time=prediction_time)
+            predictions.loc[(current_time, prediction_time)][
+                obs.observation_name
+            ] = obs.observe(data=data, time=prediction_time)
 
         return predictions
 
     @staticmethod
-    def build_prediction_index(frequency: pd.DatetimeIndex.freq,
-                               index: pd.Index,
-                               steps: int,
-                               step_size: int) -> pd.MultiIndex:
+    def build_prediction_index(
+        frequency: pd.DatetimeIndex.freq, index: pd.Index, steps: int, step_size: int
+    ) -> pd.MultiIndex:
         """
         :param frequency: the frequency denoting the time span between predictions.
         :param index: the index of times from which to make predictions
@@ -91,8 +94,13 @@ class Projector(abc.ABC):
             zip(
                 index.repeat(repeats=steps),
                 # todo: this doesn't work in the degenerative case where step_size = 0
-                sum(zip(*[index + frequency * (step_size + i) for i in range(steps)]), ())
+                sum(
+                    zip(*[index + frequency * (step_size + i) for i in range(steps)]),
+                    (),
+                ),
             )
         )
 
-        return pd.MultiIndex.from_tuples(tuples=tuples, names=['Current_Time', 'Prediction_Time'])
+        return pd.MultiIndex.from_tuples(
+            tuples=tuples, names=["Current_Time", "Prediction_Time"]
+        )
