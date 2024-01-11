@@ -20,8 +20,8 @@ def convergent_cross_mapping(
     n_partitions: int,
     kernel: Kernel = exponential(theta=1),
 ) -> pd.DataFrame:
-    """Cross maps Embedding y to Embedding x, providing the cross map curve to interpret whether is a 'convergent cross
-    map' cause of y.
+    """Cross maps Embedding y to Embedding x, providing the cross map curve to determine whether x is a convergent
+    cross map cause of y.
 
     :param embedding_x: a coordinate delay Embedding of variable x.
     :param embedding_y: a coordinate delay Embedding of variable y.
@@ -29,7 +29,7 @@ def convergent_cross_mapping(
     :param library_times: the set of points to draw random library samples from.
     :param prediction_times: the times to test cross mapping on.
     :param n_partitions: the number of random partitions ranging from size N/n_partitions to N where N is the length of
-    the prediction set defined by prediction-start and prediction end.
+    the prediction set defined by prediction start and prediction end.
     :param kernel: the weighting kernel for the cross map estimate of the target.
     :return: a pandas dataframe of the convergent cross map profile of y cross mapped to x. Indexed by library size.
     """
@@ -89,14 +89,14 @@ def _cross_map_step(
     # Perform the cross mapping
     for time in indices:
         knn_idxs = embedding_y.get_k_nearest_neighbours(
-            embedding_y.get_points([time]).values[0],
+            embedding_y.get_points(time).values[0],
             knn=embedding_y.dimension,
             max_time=max(embedding_y.library_times),
         )
         knn_times = embedding_y.block.index[knn_idxs]
 
         # todo: generalize Norm.distance function to handle this use case
-        point = embedding_y.get_points([time]).values
+        point = embedding_y.get_points(time).values
         weights = kernel.weigh(cdist(point, embedding_y.block.loc[knn_times].values)[0])
 
         cross_mapped_points.loc[time] = (

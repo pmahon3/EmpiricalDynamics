@@ -1,35 +1,40 @@
-from .projector import Projector
-import pandas as pd
 import numpy as np
-
-from scipy.linalg import pinv
+import pandas as pd
 
 from edynamics.modelling_tools.embeddings import Embedding
-from edynamics.modelling_tools.norms import Norm
 from edynamics.modelling_tools.kernels import Kernel
-from edynamics.modelling_tools.norms import minkowski
-from edynamics.modelling_tools.kernels import exponential
+from edynamics.modelling_tools.kernels import Exponential
+from edynamics.modelling_tools.norms import Norm
+from edynamics.modelling_tools.norms import Minkowski
+from .projector import Projector
 
 
-class smap(Projector):
+class WeightedLeastSquares(Projector):
     def __init__(
-        self, norm: Norm = minkowski(p=2), kernel: Kernel = exponential(theta=0.0)
+            self, norm: Norm = Minkowski(p=2), kernel: Kernel = Exponential(theta=0.0)
     ):
         super().__init__(norm=norm, kernel=kernel)
 
-    def predict(
-        self, embedding: Embedding, points: pd.DataFrame, steps: int, step_size: int
+    def project(
+            self,
+            embedding: Embedding,
+            points: pd.DataFrame,
+            steps: int,
+            step_size: int,
+            return_jacobian: bool = False
     ) -> pd.DataFrame:
         """
-        Perform an S-Map projection from the given point.
+        Performs a single or multi step weighted lease squares projections from each of the given points.
 
         :param embedding: the delay embedded system.
         :param points: an n-by-m pandas dataframe of m-dimensional lagged coordinate vectors, stored row-wise, to be
             projected according to the library of points.
         :param steps: the number of prediction steps to make out from for each point. By default 1.
         :param step_size: the number to steps, of length given by the frequency of the block, to prediction.
-        :return pd.DataFrame: a dataframe of the predicted embedded points. The data block is multi-indexed; the first
-            index level is the 'current_time', the maximum time of observed data that was used to make the prediction,
+        :param return_jacobian: if true return the matrices of coefficients used to integrate each prediction, these are
+            an approximation of the Jacobian at each prediction point.
+        :return pd.DataFrame: a dataframe of the predicted embedded points. The DATA block is multi-indexed; the first
+            index level is the 'current_time', the maximum time of observed DATA that was used to make the prediction,
             the second index level is the 'prediction_time', the time of the predicted point.
         """
 
@@ -44,13 +49,8 @@ class smap(Projector):
         futures = []
         for i, point in enumerate(points.values):
             futures.append(
-                self._smap_step(
-                    embedding=embedding,
-                    point=point,
-                    indices=indices[i * steps : i * steps + steps],
-                    steps=steps,
-                    step_size=step_size,
-                )
+                self._wls_multi_step(embedding=embedding, point=point, indices=indices[i * steps: i * steps + steps],
+                                     steps=steps, step_size=step_size, return_jacobian=return_jacobian)
             )
 
         # Retrieve results
@@ -62,45 +62,51 @@ class smap(Projector):
 
         return projections
 
-    def _smap_step(
-        self,
-        embedding: Embedding,
-        point: np.array,
-        indices: pd.MultiIndex,
-        steps: int,
-        step_size: int,
+    def _wls_multi_step(
+            self,
+            embedding: Embedding,
+            point: np.array,
+            indices: pd.MultiIndex,
+            steps: int,
+            step_size: int,
+            return_jacobian: bool,
     ) -> pd.DataFrame:
         """
-        Makes a smap projection for a given prediction period, modifying the output dataframe in place. Useful for
-        parallelization.
+        Performs a single step weighted least squares projection from the given point, modifying the output dataframe in
+        place. Useful for parallelization.
 
         :param np.array point: the starting point for the prediction period.
         :param indices pd.MultiIndex: the indices for projected points.
         :param int steps: the number predictions to conduct for this prediction period
         :param int step_size: the number to steps, of length given by the frequency of the block, to prediction.
-        :return pd.DataFrame: a dataframe of the predicted embedded points. The data block is multi-indexed; the first
+        :param return_jacobian: if true return the matrices of coefficients used to integrate each prediction.
+        :return pd.DataFrame: a dataframe of the predicted embedded points. The DATA block is multi-indexed; the first
             index level.
-            is the 'current_time', the maximum time of observed data that was used to make the prediction, the second
+            is the 'current_time', the maximum time of observed DATA that was used to make the prediction, the second
             index level is the 'prediction_time', the time of the predicted point.
         """
         predictions = pd.DataFrame(
             index=indices, columns=embedding.block.columns, dtype=float
         )
 
+        if return_jacobian:
+            # todo: implement
+            pass
+
         current_time = indices[0][0]
         prediction_time = indices[0][-1]
 
         # X is the library of inputs, the embedded points up to the starting point of the prediction period
-        # y is the library of outputs, the Embedding points at time t+1
-        X = embedding.block.loc[embedding.library_times][:-step_size]
-        y = embedding.block.loc[embedding.library_times][step_size:]
+        # y is the library of outputs, the Embedding points at time t + step_size
+        X = embedding.block.loc[embedding.library_times <= current_time][:-step_size]
+        y = embedding.block.loc[embedding.library_times <= current_time][step_size:]
 
         for j in range(steps):
             # Compute the weights
             distance_matrix = self.norm.distance_matrix(
                 embedding=embedding, points=point[np.newaxis, :], max_time=current_time
             )
-            weights = self.weigher.weigh(distance_matrix=distance_matrix)[:-step_size]
+            weights = self.kernel.weigh(distance_matrix=distance_matrix)[:-step_size]
             weights[np.isnan(weights)] = 0.0
 
             # A is the product of the weights and the library X points, A = w * X
