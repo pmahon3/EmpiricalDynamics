@@ -2,11 +2,10 @@ import abc
 
 import numpy as np
 import pandas as pd
-import ray
 
 from edynamics.modelling_tools.embeddings import Embedding
-from edynamics.modelling_tools.norms import Norm
 from edynamics.modelling_tools.kernels import Kernel
+from edynamics.modelling_tools.norms import Norm
 
 
 class Projector(abc.ABC):
@@ -18,11 +17,11 @@ class Projector(abc.ABC):
         :param kernel: which weighting kernel to use.
         """
         self.norm = norm
-        self.weigher = kernel
+        self.kernel = kernel
 
     @abc.abstractmethod
-    def predict(
-        self, embedding: Embedding, points: pd.DataFrame, steps: int, step_size: int
+    def project(
+            self, embedding: Embedding, points: pd.DataFrame, steps: int, step_size: int, leave_out: bool
     ) -> pd.DataFrame:
         """
         Abstract method defining state spaced based prediction methods for predictions of delay Embedding points
@@ -37,13 +36,13 @@ class Projector(abc.ABC):
 
     @staticmethod
     def update_values(
-        embedding: Embedding,
-        predictions: pd.DataFrame,
-        current_time: np.datetime64,
-        prediction_time: np.datetime64,
+            embedding: Embedding,
+            predictions: pd.DataFrame,
+            current_time: np.datetime64,
+            prediction_time: np.datetime64,
     ) -> pd.DataFrame:
         """
-        Updates a given predicted point in a predicted data block by replacing the variables with either the
+        Updates a given predicted point in a predicted DATA block by replacing the variables with either the
         actual variables, if available, or the projected variables from previous predictions.
         :return: the updated dataframe of projections.
         """
@@ -56,12 +55,20 @@ class Projector(abc.ABC):
             unobserved = [time for time in obs_times if time > current_time]
             observed = [time for time in obs_times if time <= current_time]
 
-            data = pd.concat(
-                [
-                    predictions.loc[current_time].loc[unobserved][obs.variable_name],
-                    embedding.data.loc[observed][obs.variable_name],
-                ]
-            ).to_frame()
+            try:
+                data = pd.concat(
+                    [
+                        predictions.loc[current_time].loc[unobserved][obs.variable_name],
+                        embedding.data.loc[observed][obs.variable_name],
+                    ]
+                ).to_frame()
+            except KeyError as e:
+                if any(a not in predictions.loc[current_time].index for a in unobserved):
+                    offenders = [a for a in unobserved if a not in predictions.loc[current_time].index]
+                    print(f"The times {offenders} used to make observation {obs.observation_name} at time "
+                          f"{prediction_time} are not in the observed or previously predicted values. The step_size"
+                          f" likely exceeds the an observation lag size.")
+                    print(e)
 
             data.sort_index(inplace=True)
             hit = False
@@ -73,13 +80,13 @@ class Projector(abc.ABC):
 
             predictions.loc[(current_time, prediction_time)][
                 obs.observation_name
-            ] = obs.observe(data=data, time=prediction_time)
+            ] = obs.observe(data=data, times=pd.DatetimeIndex(data=[prediction_time])).values
 
         return predictions
 
     @staticmethod
     def build_prediction_index(
-        frequency: pd.DatetimeIndex.freq, index: pd.Index, steps: int, step_size: int
+            frequency: pd.DatetimeIndex.freq, index: pd.Index, steps: int, step_size: int
     ) -> pd.MultiIndex:
         """
         :param frequency: the frequency denoting the time span between predictions.
@@ -104,3 +111,8 @@ class Projector(abc.ABC):
         return pd.MultiIndex.from_tuples(
             tuples=tuples, names=["Current_Time", "Prediction_Time"]
         )
+
+    def __eq__(self, other):
+        if isinstance(other, Projector):
+            return self.norm == other.norm and self.kernel == other.kernel
+        return False

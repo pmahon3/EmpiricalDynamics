@@ -2,7 +2,7 @@ from .kernel import Kernel
 import numpy as np
 
 
-class epanechnikov(Kernel):
+class Epanechnikov(Kernel):
     def __init__(self, theta: float):
         super().__init__(theta=theta)
 
@@ -13,3 +13,12 @@ class epanechnikov(Kernel):
             * (1 - (distance_matrix / self.theta) ** 2)
             * np.heaviside(1 - (distance_matrix / self.theta), 1.0)
         )
+
+    def __repr__(self):
+        return f"Epanechnikov Kernel:\n" \
+               f"\tTheta:{self.theta}"
+
+    def __str__(self):
+        return f"Epanechnikov Kernel:\n" \
+               f"\tTheta:{self.theta}"
+    

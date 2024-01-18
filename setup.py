@@ -11,7 +11,7 @@ requirements = [
 # Setting up
 setup(
     name="edynamics",
-    version='0.3.11',
+    version='0.3.12',
     author="Patrick Mahon",
     author_email="<pmahon3@uwo.ca>",
     description='Empirical dynamic modelling - modular, parallel, object-oriented',

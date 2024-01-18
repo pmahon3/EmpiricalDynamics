@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def _lorenz_integrator(xyz, *, s=10, r=28, b=2.667):

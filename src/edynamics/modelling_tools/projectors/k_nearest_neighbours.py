@@ -64,7 +64,7 @@ class KNearestNeighbours(Projector):
         self.k = k
 
     def project(
-            self, embedding: Embedding, points: pd.DataFrame, steps: int, step_size: int
+            self, embedding: Embedding, points: pd.DataFrame, steps: int, step_size: int, leave_out: bool = False
     ) -> pd.DataFrame:
         """
         Perform a k projection for each of the given points.
@@ -74,6 +74,7 @@ class KNearestNeighbours(Projector):
         :param steps: the number of prediction steps to make out from for each point. By default 1.
             period.
         :param step_size: the number to steps, of length given by the frequency of the block, to predict.
+        :param leave_out: if true return the matrices of coefficients used to integrate each prediction.
         :return: the k projected points
         """
         if self.k is None:
@@ -89,11 +90,6 @@ class KNearestNeighbours(Projector):
             index=indices, columns=embedding.block.columns, dtype=float
         )
 
-        if len(predictions.index.droplevel(0).intersection(embedding.library_times)):
-            warnings.warn(f"The following reference time indices are included in the library times:\n"
-                          f"\t{embedding.library_times.intersection(predictions.index.droplevel(0))}\n"
-                          f"This may result in unexpected behaviour.")
-
         for i in range(len(points)):
             reference_time = indices[i * steps][0]
             point = points.iloc[i].values
@@ -101,7 +97,7 @@ class KNearestNeighbours(Projector):
                 try:
                     prediction_time = indices[i * steps + j][-1]
                     knn_idxs = embedding.get_k_nearest_neighbours(
-                        point=point, max_time=reference_time, knn=self.k
+                        point=point, knn=self.k
                     )
 
                     # optimize: would self.Norm.distance_matrix be more direct here? It might be but using kernel.weigh
@@ -131,3 +127,20 @@ class KNearestNeighbours(Projector):
                     continue
 
         return predictions
+
+    def __repr__(self):
+        return f"K-Nearest Neighbours Projector:\n" \
+               f"\tNorm:\t{repr(self.norm)}\n" \
+               f"\tKernel:\t{repr(self.kernel)}\n" \
+               f"\tK:\t{self.k}"
+
+    def __str__(self):
+        return f"K-Nearest Neighbours Projector:\n" \
+               f"\tNorm:\t{str(self.norm)}\n" \
+               f"\tKernel:\t{str(self.kernel)}\n" \
+               f"\tK:\t{self.k}"
+
+    def __eq__(self, other):
+        if isinstance(other, KNearestNeighbours):
+            return self.k == other.k and super.__eq__(self, other)
+        return False

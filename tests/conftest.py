@@ -4,13 +4,13 @@ This module defines the functions for generating various data sets used in the t
 Please note, all data sets should be structured as pandas data frames, indexed by a datetime index.
 """
 import os
-
 import pytest
+import pytest_html
+import base64
 import pandas as pd
 import numpy as np
 import logging
 
-from pytest_html import extras
 from scipy.integrate import odeint
 
 # Configure logging
@@ -18,21 +18,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger(__name__)
 
 # Set up directories for reports and plotting
+logger.info("Setting up image directory for report plotting...")
 os.environ['PYTEST_REPORT_IMAGES'] = os.path.dirname(os.path.realpath(__file__)) + "/report/images/"
 os.makedirs(os.environ['PYTEST_REPORT_IMAGES'], exist_ok=True)
 
-
-@pytest.fixture(autouse=True, scope="class")
-def append_images_to_report(request):
-    yield  # This allows the test to run first
-
-    # Append images to the report
-    if hasattr(request.node, '_image_paths'):
-        extra = getattr(request.node, 'extra', [])
-        for image_path in request.node._image_paths:
-            for img in image_path:
-                extra.append(extras.image(img))
-        request.node.extra = extra
+if os.listdir(os.environ['PYTEST_REPORT_IMAGES']):
+    logger.info("Removing old images...")
+    for f in os.listdir(os.environ['PYTEST_REPORT_IMAGES']):
+        os.remove(os.path.join(os.environ['PYTEST_REPORT_IMAGES'], f))
 
 
 # Define data sets
@@ -143,3 +136,30 @@ def data_set(request):
         return generate_duffing_oscillator(n_points=n_points)
     else:
         raise ValueError("Unknown dataset type")
+
+
+# Define a fixture to initialize image paths
+@pytest.fixture
+def image_paths(request):
+    # Initialize an empty list for image paths
+    request.node.image_paths = []
+
+    # Return the list, so it can be manipulated within the test
+    return request.node.image_paths
+
+
+@pytest.mark.hookwrapper
+def pytest_runtest_makereport(item):
+    outcome = yield
+    report = outcome.get_result()
+
+    # Correctly initialize 'extra' if it's not already an attribute of report
+    if not hasattr(report, 'extra'):
+        report.extra = []
+
+    # Assuming you have set the 'image_paths' attribute in your test
+    for image_path in getattr(item, 'image_paths', []):
+        with open(image_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode()
+            html = f'<div><img src="data:image/png;base64,{encoded_string}" alt="image" style="width:1200px; height:auto;"/></div>'
+            report.extra.append(pytest_html.extras.image(encoded_string, mime_type='image/png'))

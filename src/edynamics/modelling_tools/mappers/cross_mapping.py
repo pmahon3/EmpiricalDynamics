@@ -1,24 +1,23 @@
 import random
-import pandas as pd
-import numpy as np
 
+import numpy as np
+import pandas as pd
 from scipy.spatial.distance import cdist
 from tqdm import tqdm
-from datetime import datetime
 
 from edynamics.modelling_tools.embeddings import Embedding
-from edynamics.modelling_tools.kernels import exponential
 from edynamics.modelling_tools.kernels import Kernel
+from edynamics.modelling_tools.kernels import Exponential
 
 
 def convergent_cross_mapping(
-    embedding_y: Embedding,
-    embedding_x: Embedding,
-    target: str,
-    library_times: [pd.Timestamp],
-    prediction_times: [pd.Timestamp],
-    n_partitions: int,
-    kernel: Kernel = exponential(theta=1),
+        embedding_y: Embedding,
+        embedding_x: Embedding,
+        target: str,
+        library_times: [pd.Timestamp],
+        prediction_times: [pd.Timestamp],
+        n_partitions: int,
+        kernel: Kernel = Exponential(theta=1),
 ) -> pd.DataFrame:
     """Cross maps Embedding y to Embedding x, providing the cross map curve to determine whether x is a convergent
     cross map cause of y.

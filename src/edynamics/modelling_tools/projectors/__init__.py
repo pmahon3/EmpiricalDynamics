@@ -1,3 +1,3 @@
-from .knn import knn
-from .smap import smap
+from .k_nearest_neighbours import KNearestNeighbours
 from .projector import Projector
+from .weighted_least_squares import WeightedLeastSquares

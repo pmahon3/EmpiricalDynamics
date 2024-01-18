@@ -1,8 +1,13 @@
 from .kernel import Kernel
 import numpy as np
+import logging
+
+from copy import copy
+
+logger = logging.getLogger(__name__)
 
 
-class exponential(Kernel):
+class Exponential(Kernel):
     def __init__(self, theta: float):
         super().__init__(theta=theta)
 
@@ -16,6 +21,16 @@ class exponential(Kernel):
 
         """
         # Let division by zero result in zero for a weight of 1.0 for identical points
+        average_distances = np.average(distance_matrix[0], axis=0)
+        average_distances = np.where(average_distances == 0, np.inf, average_distances)
         return np.exp(
-            -self.theta * distance_matrix / np.average(distance_matrix, axis=0)
+            -self.theta * distance_matrix / average_distances
         )
+
+    def __repr__(self):
+        return f"Exponential Kernel:\n" \
+               f"\tTheta:{self.theta}"
+
+    def __str__(self):
+        return f"Exponential Kernel Object:\n" \
+               f"\tTheta:{self.theta}"

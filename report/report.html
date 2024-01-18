@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title id="head-title">report.html</title>
+      <link href="assets/style.css" rel="stylesheet" type="text/css"/>
+  </head>
+  <body>
+    <h1 id="title">report.html</h1>
+    <p>Report generated on 11-Jan-2024 at 08:51:20 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a>
+        v4.1.1</p>
+    <div id="environment-header">
+      <h2>Environment</h2>
+    </div>
+    <table id="environment"></table>
+    <!-- TEMPLATES -->
+      <template id="template_environment_row">
+      <tr>
+        <td></td>
+        <td></td>
+      </tr>
+    </template>
+    <template id="template_results-table__body--empty">
+      <tbody class="results-table-row">
+        <tr id="not-found-message">
+          <td colspan="4">No results found. Check the filters.</th>
+        </tr>
+    </template>
+    <template id="template_results-table__tbody">
+      <tbody class="results-table-row">
+        <tr class="collapsible">
+        </tr>
+        <tr class="extras-row">
+          <td class="extra" colspan="4">
+            <div class="extraHTML"></div>
+            <div class="media">
+              <div class="media-container">
+                  <div class="media-container__nav--left"><</div>
+                  <div class="media-container__viewport">
+                    <img src="" />
+                    <video controls>
+                      <source src="" type="video/mp4">
+                    </video>
+                  </div>
+                  <div class="media-container__nav--right">></div>
+                </div>
+                <div class="media__name"></div>
+                <div class="media__counter"></div>
+            </div>
+            <div class="logwrapper">
+              <div class="logexpander"></div>
+              <div class="log"></div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </template>
+    <!-- END TEMPLATES -->
+    <div class="summary">
+      <div class="summary__data">
+        <h2>Summary</h2>
+        <div class="additional-summary prefix">
+        </div>
+        <p class="run-count">26 tests took 00:00:13.</p>
+        <p class="filter">(Un)check the boxes to filter the results.</p>
+        <div class="summary__reload">
+          <div class="summary__reload__button hidden" onclick="location.reload()">
+            <div>There are still tests running. <br />Reload this page to get the latest results!</div>
+          </div>
+        </div>
+        <div class="summary__spacer"></div>
+        <div class="controls">
+          <div class="filters">
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="failed" />
+            <span class="failed">4 Failed,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="passed" />
+            <span class="passed">22 Passed,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="skipped" disabled/>
+            <span class="skipped">0 Skipped,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="xfailed" disabled/>
+            <span class="xfailed">0 Expected failures,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="xpassed" disabled/>
+            <span class="xpassed">0 Unexpected passes,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="error" disabled/>
+            <span class="error">0 Errors,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="rerun" disabled/>
+            <span class="rerun">0 Reruns</span>
+          </div>
+          <div class="collapse">
+            <button id="show_all_details">Show all details</button>&nbsp;/&nbsp;<button id="hide_all_details">Hide all details</button>
+          </div>
+        </div>
+      </div>
+      <div class="additional-summary summary">
+      </div>
+      <div class="additional-summary postfix">
+      </div>
+    </div>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable" data-column-type="result">Result</th>
+          <th class="sortable" data-column-type="testId">Test</th>
+          <th class="sortable" data-column-type="duration">Duration</th>
+          <th>Links</th>
+        </tr>
+      </thead>
+    </table>
+  </body>
+  <footer>
+    <div id="data-container" data-jsonblob="{&#34;environment&#34;: {&#34;Python&#34;: &#34;3.9.6&#34;, &#34;Platform&#34;: &#34;macOS-14.0-arm64-arm-64bit&#34;, &#34;Packages&#34;: {&#34;pytest&#34;: &#34;7.4.3&#34;, &#34;pluggy&#34;: &#34;1.3.0&#34;}, &#34;Plugins&#34;: {&#34;html&#34;: &#34;4.1.1&#34;, &#34;metadata&#34;: &#34;3.0.0&#34;}}, &#34;tests&#34;: {&#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_valid_initialization&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_valid_initialization&#34;, &#34;duration&#34;: &#34;3 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_valid_initialization&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;3 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;----------------------------- Captured stderr call -----------------------------\n2024-01-11 08:51:07,163 [INFO] Compiling the state space embedding with 2 observers...\n2024-01-11 08:51:07,163 [INFO] Data size: (10, 2), Library times: 10\n2024-01-11 08:51:07,164 [INFO] State space embedding compiled. Block size: (10, 2)\n2024-01-11 08:51:07,165 [INFO] Embedding created.\n\n------------------------------ Captured log call -------------------------------\nINFO     root:embedding.py:156 Compiling the state space embedding with 2 observers...\nINFO     root:embedding.py:157 Data size: (10, 2), Library times: 10\nINFO     root:embedding.py:179 State space embedding compiled. Block size: (10, 2)\nINFO     root:embedding.py:146 Embedding created.\n\n&#34;}], &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_compile_embedding&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_compile_embedding&#34;, &#34;duration&#34;: &#34;2 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_compile_embedding&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;2 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;----------------------------- Captured stderr call -----------------------------\n2024-01-11 08:51:07,165 [INFO] Compiling the state space embedding with 2 observers...\n2024-01-11 08:51:07,165 [INFO] Data size: (10, 2), Library times: 10\n2024-01-11 08:51:07,167 [INFO] State space embedding compiled. Block size: (10, 2)\n2024-01-11 08:51:07,167 [INFO] Embedding created.\n\n------------------------------ Captured log call -------------------------------\nINFO     root:embedding.py:156 Compiling the state space embedding with 2 observers...\nINFO     root:embedding.py:157 Data size: (10, 2), Library times: 10\nINFO     root:embedding.py:179 State space embedding compiled. Block size: (10, 2)\nINFO     root:embedding.py:146 Embedding created.\n\n&#34;}], &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_get_points&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_get_points&#34;, &#34;duration&#34;: &#34;2 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_get_points&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;2 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;----------------------------- Captured stderr call -----------------------------\n2024-01-11 08:51:07,167 [INFO] Compiling the state space embedding with 2 observers...\n2024-01-11 08:51:07,167 [INFO] Data size: (10, 2), Library times: 10\n2024-01-11 08:51:07,168 [INFO] State space embedding compiled. Block size: (10, 2)\n2024-01-11 08:51:07,168 [INFO] Embedding created.\n\n------------------------------ Captured log call -------------------------------\nINFO     root:embedding.py:156 Compiling the state space embedding with 2 observers...\nINFO     root:embedding.py:157 Data size: (10, 2), Library times: 10\nINFO     root:embedding.py:179 State space embedding compiled. Block size: (10, 2)\nINFO     root:embedding.py:146 Embedding created.\n\n&#34;}], &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_invalid_data_type&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_invalid_data_type&#34;, &#34;duration&#34;: &#34;0 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_invalid_data_type&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;0 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_invalid_observers_type&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_invalid_observers_type&#34;, &#34;duration&#34;: &#34;0 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_invalid_observers_type&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;0 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_invalid_library_times_type&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_invalid_library_times_type&#34;, &#34;duration&#34;: &#34;0 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_invalid_library_times_type&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;0 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_set_library_valid_library_times&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_set_library_valid_library_times&#34;, &#34;duration&#34;: &#34;0 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_set_library_valid_library_times&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;0 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;----------------------------- Captured stderr call -----------------------------\n2024-01-11 08:51:07,172 [INFO] Embedding created.\n\n------------------------------ Captured log call -------------------------------\nINFO     root:embedding.py:146 Embedding created.\n\n&#34;}], &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_set_observers_valid_observers_compile_block_true&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_set_observers_valid_observers_compile_block_true&#34;, &#34;duration&#34;: &#34;4 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_set_observers_valid_observers_compile_block_true&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;4 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;----------------------------- Captured stderr call -----------------------------\n2024-01-11 08:51:07,172 [INFO] Compiling the state space embedding with 2 observers...\n2024-01-11 08:51:07,172 [INFO] Data size: (10, 2), Library times: 8\n2024-01-11 08:51:07,173 [INFO] State space embedding compiled. Block size: (8, 2)\n2024-01-11 08:51:07,173 [INFO] Embedding created.\n2024-01-11 08:51:07,173 [INFO] Setting observers...\n2024-01-11 08:51:07,174 [INFO] Compiling...\n2024-01-11 08:51:07,174 [INFO] Compiling the state space embedding with 3 observers...\n2024-01-11 08:51:07,174 [INFO] Data size: (10, 2), Library times: 8\n2024-01-11 08:51:07,175 [INFO] State space embedding compiled. Block size: (8, 3)\n\n------------------------------ Captured log call -------------------------------\nINFO     root:embedding.py:156 Compiling the state space embedding with 2 observers...\nINFO     root:embedding.py:157 Data size: (10, 2), Library times: 8\nINFO     root:embedding.py:179 State space embedding compiled. Block size: (8, 2)\nINFO     root:embedding.py:146 Embedding created.\nINFO     root:embedding.py:224 Setting observers...\nINFO     root:embedding.py:228 Compiling...\nINFO     root:embedding.py:156 Compiling the state space embedding with 3 observers...\nINFO     root:embedding.py:157 Data size: (10, 2), Library times: 8\nINFO     root:embedding.py:179 State space embedding compiled. Block size: (8, 3)\n\n&#34;}], &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_compile_no_observers&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_compile_no_observers&#34;, &#34;duration&#34;: &#34;0 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_compile_no_observers&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;0 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_retrieve_points_no_observers&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_retrieve_points_no_observers&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_retrieve_points_no_observers&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;----------------------------- Captured stderr call -----------------------------\n2024-01-11 08:51:07,177 [INFO] Embedding created.\n\n------------------------------ Captured log call -------------------------------\nINFO     root:embedding.py:146 Embedding created.\n\n&#34;}], &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_retrieve_points_invalid_times&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_retrieve_points_invalid_times&#34;, &#34;duration&#34;: &#34;2 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_retrieve_points_invalid_times&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;2 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;----------------------------- Captured stderr call -----------------------------\n2024-01-11 08:51:07,178 [INFO] Compiling the state space embedding with 2 observers...\n2024-01-11 08:51:07,178 [INFO] Data size: (10, 2), Library times: 10\n2024-01-11 08:51:07,179 [INFO] State space embedding compiled. Block size: (10, 2)\n2024-01-11 08:51:07,179 [INFO] Embedding created.\n\n------------------------------ Captured log call -------------------------------\nINFO     root:embedding.py:156 Compiling the state space embedding with 2 observers...\nINFO     root:embedding.py:157 Data size: (10, 2), Library times: 10\nINFO     root:embedding.py:179 State space embedding compiled. Block size: (10, 2)\nINFO     root:embedding.py:146 Embedding created.\n\n&#34;}], &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_set_observers_invalid_observers&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_set_observers_invalid_observers&#34;, &#34;duration&#34;: &#34;2 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/embeddings/test_Embedding.py::TestEmbedding::test_set_observers_invalid_observers&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;2 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;----------------------------- Captured stderr call -----------------------------\n2024-01-11 08:51:07,181 [INFO] Compiling the state space embedding with 2 observers...\n2024-01-11 08:51:07,181 [INFO] Data size: (10, 2), Library times: 10\n2024-01-11 08:51:07,182 [INFO] State space embedding compiled. Block size: (10, 2)\n2024-01-11 08:51:07,182 [INFO] Embedding created.\n\n------------------------------ Captured log call -------------------------------\nINFO     root:embedding.py:156 Compiling the state space embedding with 2 observers...\nINFO     root:embedding.py:157 Data size: (10, 2), Library times: 10\nINFO     root:embedding.py:179 State space embedding compiled. Block size: (10, 2)\nINFO     root:embedding.py:146 Embedding created.\n\n&#34;}], &#34;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_build_prediction_index[1-1-data_set0-3-0.5-10]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_build_prediction_index[1-1-data_set0-3-0.5-10]&#34;, &#34;duration&#34;: &#34;18 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_build_prediction_index[1-1-data_set0-3-0.5-10]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;18 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;---------------------------- Captured stderr setup -----------------------------\n2024-01-11 08:51:07,197 [INFO] Compiling the state space embedding with 3 observers...\n2024-01-11 08:51:07,197 [INFO] Data size: (100, 3), Library times: 47\n2024-01-11 08:51:07,198 [INFO] State space embedding compiled. Block size: (47, 3)\n2024-01-11 08:51:07,198 [INFO] Embedding created.\n\n------------------------------ Captured log setup ------------------------------\nINFO     root:embedding.py:156 Compiling the state space embedding with 3 observers...\nINFO     root:embedding.py:157 Data size: (100, 3), Library times: 47\nINFO     root:embedding.py:179 State space embedding compiled. Block size: (47, 3)\nINFO     root:embedding.py:146 Embedding created.\n&#34;}], &#34;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_projection[1-1-data_set0-3-0.5-10]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_projection[1-1-data_set0-3-0.5-10]&#34;, &#34;duration&#34;: &#34;3 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_projection[1-1-data_set0-3-0.5-10]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;3 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_build_prediction_index[1-3-data_set0-3-0.5-10]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_build_prediction_index[1-3-data_set0-3-0.5-10]&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_build_prediction_index[1-3-data_set0-3-0.5-10]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_build_prediction_index[3-1-data_set0-3-0.5-10]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_build_prediction_index[3-1-data_set0-3-0.5-10]&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_build_prediction_index[3-1-data_set0-3-0.5-10]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_build_prediction_index[3-3-data_set0-3-0.5-10]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_build_prediction_index[3-3-data_set0-3-0.5-10]&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestSmoke::test_build_prediction_index[3-3-data_set0-3-0.5-10]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestPerformance::test_projection_performance[1-1-data_set0-3-0.5-100-100-0.1-0.95-1.05]&#34;: [{&#34;extras&#34;: [{&#34;name&#34;: &#34;Image&#34;, &#34;format_type&#34;: &#34;image&#34;, &#34;content&#34;: &#34;assets/tests_unit_modelling_tools_projectors_knn_test_knn.py__TestPerformance__test_projection_performance_1_1_data_set0_3_0.5_100_100_0.1_0.95_1.05__0_0.png&#34;, &#34;mime_type&#34;: &#34;image/png&#34;, &#34;extension&#34;: &#34;png&#34;}, {&#34;name&#34;: &#34;Image&#34;, &#34;format_type&#34;: &#34;image&#34;, &#34;content&#34;: &#34;assets/tests_unit_modelling_tools_projectors_knn_test_knn.py__TestPerformance__test_projection_performance_1_1_data_set0_3_0.5_100_100_0.1_0.95_1.05__1_0.png&#34;, &#34;mime_type&#34;: &#34;image/png&#34;, &#34;extension&#34;: &#34;png&#34;}, {&#34;name&#34;: &#34;Image&#34;, &#34;format_type&#34;: &#34;image&#34;, &#34;content&#34;: &#34;assets/tests_unit_modelling_tools_projectors_knn_test_knn.py__TestPerformance__test_projection_performance_1_1_data_set0_3_0.5_100_100_0.1_0.95_1.05__2_0.png&#34;, &#34;mime_type&#34;: &#34;image/png&#34;, &#34;extension&#34;: &#34;png&#34;}], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestPerformance::test_projection_performance[1-1-data_set0-3-0.5-100-100-0.1-0.95-1.05]&#34;, &#34;duration&#34;: &#34;00:00:03&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestPerformance::test_projection_performance[1-1-data_set0-3-0.5-100-100-0.1-0.95-1.05]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:03&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;self = &amp;lt;tests.unit.modelling_tools.projectors.knn.test_knn.TestPerformance object at 0x13a1e4af0&amp;gt;\nprojector = K-Nearest Neighbours Projector:\n\tNorm:\t&amp;lt;edynamics.modelling_tools.norms.minkowski.Minkowski object at 0x12b57ef10&amp;gt;\n\tKernel:\tExponential Kernel:\n\tTheta:0\n\tK:\t4\nembedding = Embedding:\n\tObservers:\t&amp;lt;edynamics.modelling_tools.observers.observers.Lag object at 0x13a1db1c0&amp;gt;, &amp;lt;edynamics.modelling...&amp;gt;, &amp;lt;edynamics.modelling_tools.observers.observers.Lag object at 0x13a1cc940&amp;gt;\n\tData:\t\t&amp;#x27;X&amp;#x27;, &amp;#x27;Y&amp;#x27;, &amp;#x27;Z&amp;#x27;\n\tFrequency:\t&amp;lt;Second&amp;gt;\nsplit = 0.5, n_test_points = 100, steps = 1, step_size = 1, n_samples = 100, pae_sup = 0.1, pcd_inf = 0.95, pcd_sup = 1.05\nimage_paths = [&amp;#x27;/Users/pmahon/Research/Dynamics/EmpiricalDynamics/tests/report/images/percent_absolute_error_64cf2318-69c2-48c2-b920.../pmahon/Research/Dynamics/EmpiricalDynamics/tests/report/images/correlations_d431c8b4-40ef-4487-a57c-0d5681b74461.png&amp;#x27;]\n\n    @pytest.mark.parametrize(&amp;#x27;steps, step_size&amp;#x27;,\n                             [(1, 1)])\n    def test_projection_performance(self,\n                                    projector: KNearestNeighbours,\n                                    embedding: Embedding,\n                                    split: float,\n                                    n_test_points: int,\n                                    steps: int,\n                                    step_size: int,\n                                    n_samples: int,\n                                    pae_sup: float,\n                                    pcd_inf: float,\n                                    pcd_sup: float,\n                                    image_paths):\n&amp;gt;       projection_performance(\n            projector=projector, embedding=embedding, split=split, n_test_points=n_test_points, steps=steps,\n            step_size=step_size, n_samples=n_samples, pae_sup=pae_sup, pcd_inf=pcd_inf, pcd_sup=pcd_sup,\n            image_paths=image_paths)\n\ntests/unit/modelling_tools/projectors/knn/test_knn.py:77: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\nprojector = K-Nearest Neighbours Projector:\n\tNorm:\t&amp;lt;edynamics.modelling_tools.norms.minkowski.Minkowski object at 0x12b57ef10&amp;gt;\n\tKernel:\tExponential Kernel:\n\tTheta:0\n\tK:\t4\nembedding = Embedding:\n\tObservers:\t&amp;lt;edynamics.modelling_tools.observers.observers.Lag object at 0x13a1db1c0&amp;gt;, &amp;lt;edynamics.modelling...&amp;gt;, &amp;lt;edynamics.modelling_tools.observers.observers.Lag object at 0x13a1cc940&amp;gt;\n\tData:\t\t&amp;#x27;X&amp;#x27;, &amp;#x27;Y&amp;#x27;, &amp;#x27;Z&amp;#x27;\n\tFrequency:\t&amp;lt;Second&amp;gt;\nsplit = 0.5, n_test_points = 100, steps = 1, step_size = 1, n_samples = 100, pae_sup = 0.1, pcd_inf = 0.95, pcd_sup = 1.05\nimage_paths = [&amp;#x27;/Users/pmahon/Research/Dynamics/EmpiricalDynamics/tests/report/images/percent_absolute_error_64cf2318-69c2-48c2-b920.../pmahon/Research/Dynamics/EmpiricalDynamics/tests/report/images/correlations_d431c8b4-40ef-4487-a57c-0d5681b74461.png&amp;#x27;]\n\n    def projection_performance(projector: Projector,\n                               embedding: Embedding,\n                               split: float,\n                               n_test_points: int,\n                               steps: int,\n                               step_size: int,\n                               n_samples: int,\n                               pae_sup: float,\n                               pcd_inf: float,\n                               pcd_sup: float,\n                               image_paths) -&amp;gt; tuple[Any, Any, Any, list[Union[bytes, str]]]:\n        # set up frames for recording sample data\n        sample_index = pd.Index(data=np.arange(0, n_samples))\n        stats_index = pd.Index(data=[&amp;#x27;count&amp;#x27;, &amp;#x27;mean&amp;#x27;, &amp;#x27;std&amp;#x27;, &amp;#x27;min&amp;#x27;, &amp;#x27;25%&amp;#x27;, &amp;#x27;50%&amp;#x27;, &amp;#x27;75%&amp;#x27;, &amp;#x27;max&amp;#x27;])\n        multi_index = pd.MultiIndex.from_product([sample_index, stats_index], names=[&amp;#x27;sample_id&amp;#x27;, &amp;#x27;statistic&amp;#x27;])\n    \n        percent_correct_direction = pd.DataFrame(index=multi_index,\n                                                 columns=[obs.observation_name for obs in embedding.observers])\n        percent_absolute_error = pd.DataFrame(index=multi_index,\n                                              columns=[obs.observation_name for obs in embedding.observers])\n        correlations = pd.DataFrame(index=sample_index,\n                                    columns=[obs.observation_name for obs in embedding.observers])\n    \n        # perform predictions\n        for i in range(n_samples):\n            # get a sample of non-library points for predictions\n            points = sample_points(embedding=embedding,\n                                   n_test_points=n_test_points,\n                                   split=split)\n            actuals = embedding.get_points(times=points.index + embedding.frequency)\n    \n            # perform the predictions\n            projections = projector.project(\n                embedding=embedding,\n                points=points,\n                steps=steps,\n                step_size=step_size)\n    \n            # compute percent absolute error statistics\n            error = actuals - projections.droplevel(0)\n    \n            correlations.loc[i] = projections.droplevel(0).corrwith(actuals)\n    \n            percent_absolute_error.loc[i] = (error / actuals).abs().describe().values\n    \n            # compute percent correct direction statistics\n            actual_change = actuals - points.values\n            predicted_change = projections.droplevel(0) - points.values\n    \n            percent_correct_direction.loc[i] = (predicted_change / actual_change).describe().values\n    \n        # compute sample estimates\n        mean_percent_absolute_error_hat = percent_absolute_error.xs(\n            key=&amp;#x27;mean&amp;#x27;,\n            level=&amp;#x27;statistic&amp;#x27;\n        ).mean()\n    \n        mean_percent_correct_direction_hat = percent_correct_direction.xs(\n            key=&amp;#x27;mean&amp;#x27;,\n            level=&amp;#x27;statistic&amp;#x27;\n        ).mean()\n    \n        correlation_hat = correlations.mean()\n    \n        # error histograms and attach to report\n        new_image_paths = [\n            plot_error_histogram(embedding=embedding, data=percent_absolute_error, statistic=&amp;#x27;mean&amp;#x27;,\n                                 title=&amp;quot;percent_absolute_error&amp;quot;,\n                                 figure_directory=os.getenv(&amp;#x27;PYTEST_REPORT_IMAGES&amp;#x27;),\n                                 n_samples=n_samples),\n            plot_error_histogram(embedding=embedding, data=percent_correct_direction, statistic=&amp;#x27;mean&amp;#x27;,\n                                 title=&amp;quot;percent_correct_direction&amp;quot;,\n                                 figure_directory=os.getenv(&amp;#x27;PYTEST_REPORT_IMAGES&amp;#x27;),\n                                 n_samples=n_samples),\n            plot_error_histogram(embedding=embedding, data=correlations, statistic=None,\n                                 title=&amp;quot;correlations&amp;quot;,\n                                 figure_directory=os.getenv(&amp;#x27;PYTEST_REPORT_IMAGES&amp;#x27;),\n                                 n_samples=n_samples)\n        ]\n    \n        # log distribution info\n        logger.info(&amp;#x27;mean_percent_absolute_error_statistics:&amp;#x27;)\n        logger.info(&amp;#x27;\\n&amp;#x27; + percent_absolute_error.xs(\n            key=&amp;#x27;mean&amp;#x27;,\n            level=&amp;#x27;statistic&amp;#x27;\n        ).astype(&amp;#x27;float&amp;#x27;).describe().to_string())\n    \n        logger.info(&amp;#x27;mean_percent_correct_direction_statistics:&amp;#x27;)\n        logger.info(&amp;#x27;\\n&amp;#x27; + percent_correct_direction.xs(\n            key=&amp;#x27;mean&amp;#x27;,\n            level=&amp;#x27;statistic&amp;#x27;\n        ).astype(&amp;#x27;float&amp;#x27;).describe().to_string())\n    \n        logger.info(&amp;#x27;correlation_statistics:&amp;#x27;)\n        logger.info(&amp;#x27;\\n&amp;#x27; + correlations.astype(&amp;#x27;float&amp;#x27;).describe().to_string())\n    \n        for path in new_image_paths:\n            image_paths.append(path)\n    \n        assert (pcd_inf &amp;lt;= correlation_hat).all() and \\\n               (correlation_hat &amp;lt;= pcd_sup).all()\n&amp;gt;       assert (mean_percent_absolute_error_hat &amp;lt; pae_sup).all()\nE       assert False\nE        +  where False = &amp;lt;bound method NDFrame._add_numeric_operations.&amp;lt;locals&amp;gt;.all of X          False\\nX_(t-1)    False\\nX_(t-2)     True\\ndtype: bool&amp;gt;()\nE        +    where &amp;lt;bound method NDFrame._add_numeric_operations.&amp;lt;locals&amp;gt;.all of X          False\\nX_(t-1)    False\\nX_(t-2)     True\\ndtype: bool&amp;gt; = X          0.349769\\nX_(t-1)    0.164706\\nX_(t-2)    0.057729\\ndtype: float64 &amp;lt; 0.1.all\n\ntests/unit/modelling_tools/projectors/conftest.py:202: AssertionError\n\n---------------------------- Captured stderr setup -----------------------------\n2024-01-11 08:51:07,222 [INFO] Compiling the state space embedding with 3 observers...\n2024-01-11 08:51:07,222 [INFO] Data size: (1000, 3), Library times: 497\n2024-01-11 08:51:07,224 [INFO] State space embedding compiled. Block size: (497, 3)\n2024-01-11 08:51:07,224 [INFO] Embedding created.\n\n------------------------------ Captured log setup ------------------------------\nINFO     root:embedding.py:156 Compiling the state space embedding with 3 observers...\nINFO     root:embedding.py:157 Data size: (1000, 3), Library times: 497\nINFO     root:embedding.py:179 State space embedding compiled. Block size: (497, 3)\nINFO     root:embedding.py:146 Embedding created.\n\n----------------------------- Captured stderr call -----------------------------\n2024-01-11 08:51:10,440 [INFO] mean_percent_absolute_error_statistics:\n2024-01-11 08:51:10,444 [INFO] \n                X     X_(t-1)     X_(t-2)\ncount  100.000000  100.000000  100.000000\nmean     0.349769    0.164706    0.057729\nstd      0.113215    0.062598    0.012808\nmin      0.138706    0.066266    0.032410\n25%      0.259489    0.112510    0.048258\n50%      0.352823    0.135692    0.056892\n75%      0.431257    0.230301    0.066963\nmax      0.596020    0.289792    0.086690\n2024-01-11 08:51:10,444 [INFO] mean_percent_correct_direction_statistics:\n2024-01-11 08:51:10,446 [INFO] \n                X     X_(t-1)     X_(t-2)\ncount  100.000000  100.000000  100.000000\nmean     0.990080    1.200021    1.175661\nstd      0.206917    0.288791    0.285626\nmin      0.599789    0.790063    0.854400\n25%      0.833373    0.963371    0.945109\n50%      1.009530    1.058481    0.992842\n75%      1.139392    1.503273    1.496758\nmax      1.435674    1.734143    1.594834\n2024-01-11 08:51:10,446 [INFO] correlation_statistics:\n2024-01-11 08:51:10,449 [INFO] \n                X     X_(t-1)     X_(t-2)\ncount  100.000000  100.000000  100.000000\nmean     0.997237    0.998791    0.999563\nstd      0.000464    0.000226    0.000108\nmin      0.995929    0.998273    0.999297\n25%      0.996944    0.998646    0.999480\n50%      0.997278    0.998800    0.999584\n75%      0.997552    0.998929    0.999649\nmax      0.998401    0.999392    0.999744\n\n------------------------------ Captured log call -------------------------------\nINFO     tests.unit.modelling_tools.projectors.conftest:conftest.py:182 mean_percent_absolute_error_statistics:\nINFO     tests.unit.modelling_tools.projectors.conftest:conftest.py:183 \n                X     X_(t-1)     X_(t-2)\ncount  100.000000  100.000000  100.000000\nmean     0.349769    0.164706    0.057729\nstd      0.113215    0.062598    0.012808\nmin      0.138706    0.066266    0.032410\n25%      0.259489    0.112510    0.048258\n50%      0.352823    0.135692    0.056892\n75%      0.431257    0.230301    0.066963\nmax      0.596020    0.289792    0.086690\nINFO     tests.unit.modelling_tools.projectors.conftest:conftest.py:188 mean_percent_correct_direction_statistics:\nINFO     tests.unit.modelling_tools.projectors.conftest:conftest.py:189 \n                X     X_(t-1)     X_(t-2)\ncount  100.000000  100.000000  100.000000\nmean     0.990080    1.200021    1.175661\nstd      0.206917    0.288791    0.285626\nmin      0.599789    0.790063    0.854400\n25%      0.833373    0.963371    0.945109\n50%      1.009530    1.058481    0.992842\n75%      1.139392    1.503273    1.496758\nmax      1.435674    1.734143    1.594834\nINFO     tests.unit.modelling_tools.projectors.conftest:conftest.py:194 correlation_statistics:\nINFO     tests.unit.modelling_tools.projectors.conftest:conftest.py:195 \n                X     X_(t-1)     X_(t-2)\ncount  100.000000  100.000000  100.000000\nmean     0.997237    0.998791    0.999563\nstd      0.000464    0.000226    0.000108\nmin      0.995929    0.998273    0.999297\n25%      0.996944    0.998646    0.999480\n50%      0.997278    0.998800    0.999584\n75%      0.997552    0.998929    0.999649\nmax      0.998401    0.999392    0.999744\n\n&#34;}], &#34;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestPerformance::test_projection_performance[1-1-data_set1-3-0.5-100-100-0.1-0.95-1.05]&#34;: [{&#34;extras&#34;: [{&#34;name&#34;: &#34;Image&#34;, &#34;format_type&#34;: &#34;image&#34;, &#34;content&#34;: &#34;assets/tests_unit_modelling_tools_projectors_knn_test_knn.py__TestPerformance__test_projection_performance_1_1_data_set1_3_0.5_100_100_0.1_0.95_1.05__0_0.png&#34;, &#34;mime_type&#34;: &#34;image/png&#34;, &#34;extension&#34;: &#34;png&#34;}, {&#34;name&#34;: &#34;Image&#34;, &#34;format_type&#34;: &#34;image&#34;, &#34;content&#34;: &#34;assets/tests_unit_modelling_tools_projectors_knn_test_knn.py__TestPerformance__test_projection_performance_1_1_data_set1_3_0.5_100_100_0.1_0.95_1.05__1_0.png&#34;, &#34;mime_type&#34;: &#34;image/png&#34;, &#34;extension&#34;: &#34;png&#34;}, {&#34;name&#34;: &#34;Image&#34;, &#34;format_type&#34;: &#34;image&#34;, &#34;content&#34;: &#34;assets/tests_unit_modelling_tools_projectors_knn_test_knn.py__TestPerformance__test_projection_performance_1_1_data_set1_3_0.5_100_100_0.1_0.95_1.05__2_0.png&#34;, &#34;mime_type&#34;: &#34;image/png&#34;, &#34;extension&#34;: &#34;png&#34;}], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestPerformance::test_projection_performance[1-1-data_set1-3-0.5-100-100-0.1-0.95-1.05]&#34;, &#34;duration&#34;: &#34;00:00:03&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/projectors/knn/test_knn.py::TestPerformance::test_projection_performance[1-1-data_set1-3-0.5-100-100-0.1-0.95-1.05]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:03&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;self = &amp;lt;tests.unit.modelling_tools.projectors.knn.test_knn.TestPerformance object at 0x13a1e4b80&amp;gt;\nprojector = K-Nearest Neighbours Projector:\n\tNorm:\t&amp;lt;edynamics.modelling_tools.norms.minkowski.Minkowski object at 0x12b57ef10&amp;gt;\n\tKernel:\tExponential Kernel:\n\tTheta:0\n\tK:\t4\nembedding = Embedding:\n\tObservers:\t&amp;lt;edynamics.modelling_tools.observers.observers.Lag object at 0x14bc3b370&amp;gt;, &amp;lt;edynamics.modelling...3b700&amp;gt;, &amp;lt;edynamics.modelling_tools.observers.observers.Lag object at 0x14bc3b7f0&amp;gt;\n\tData:\t\t&amp;#x27;X&amp;#x27;, &amp;#x27;Y&amp;#x27;\n\tFrequency:\t&amp;lt;Second&amp;gt;\nsplit = 0.5, n_test_points = 100, steps = 1, step_size = 1, n_samples = 100, pae_sup = 0.1, pcd_inf = 0.95, pcd_sup = 1.05\nimage_paths = [&amp;#x27;/Users/pmahon/Research/Dynamics/EmpiricalDynamics/tests/report/images/percent_absolute_error_4183818a-a602-42df-b52a.../pmahon/Research/Dynamics/EmpiricalDynamics/tests/report/images/correlations_8bfdf9fe-48af-4574-bd08-bf2e5f37a666.png&amp;#x27;]\n\n    @pytest.mark.parametrize(&amp;#x27;steps, step_size&amp;#x27;,\n                             [(1, 1)])\n    def test_projection_performance(self,\n                                    projector: KNearestNeighbours,\n                                    embedding: Embedding,\n                                    split: float,\n                                    n_test_points: int,\n                                    steps: int,\n                                    step_size: int,\n                                    n_samples: int,\n                                    pae_sup: float,\n                                    pcd_inf: float,\n                                    pcd_sup: float,\n                                    image_paths):\n&amp;gt;       projection_performance(\n            projector=projector, embedding=embedding, split=split, n_test_points=n_test_points, steps=steps,\n            step_size=step_size, n_samples=n_samples, pae_sup=pae_sup, pcd_inf=pcd_inf, pcd_sup=pcd_sup,\n            image_paths=image_paths)\n\ntests/unit/modelling_tools/projectors/knn/test_knn.py:77: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\nprojector = K-Nearest Neighbours Projector:\n\tNorm:\t&amp;lt;edynamics.modelling_tools.norms.minkowski.Minkowski object at 0x12b57ef10&amp;gt;\n\tKernel:\tExponential Kernel:\n\tTheta:0\n\tK:\t4\nembedding = Embedding:\n\tObservers:\t&amp;lt;edynamics.modelling_tools.observers.observers.Lag object at 0x14bc3b370&amp;gt;, &amp;lt;edynamics.modelling...3b700&amp;gt;, &amp;lt;edynamics.modelling_tools.observers.observers.Lag object at 0x14bc3b7f0&amp;gt;\n\tData:\t\t&amp;#x27;X&amp;#x27;, &amp;#x27;Y&amp;#x27;\n\tFrequency:\t&amp;lt;Second&amp;gt;\nsplit = 0.5, n_test_points = 100, steps = 1, step_size = 1, n_samples = 100, pae_sup = 0.1, pcd_inf = 0.95, pcd_sup = 1.05\nimage_paths = [&amp;#x27;/Users/pmahon/Research/Dynamics/EmpiricalDynamics/tests/report/images/percent_absolute_error_4183818a-a602-42df-b52a.../pmahon/Research/Dynamics/EmpiricalDynamics/tests/report/images/correlations_8bfdf9fe-48af-4574-bd08-bf2e5f37a666.png&amp;#x27;]\n\n    def projection_performance(projector: Projector,\n                               embedding: Embedding,\n                               split: float,\n                               n_test_points: int,\n                               steps: int,\n                               step_size: int,\n                               n_samples: int,\n                               pae_sup: float,\n                               pcd_inf: float,\n                               pcd_sup: float,\n                               image_paths) -&amp;gt; tuple[Any, Any, Any, list[Union[bytes, str]]]:\n        # set up frames for recording sample data\n        sample_index = pd.Index(data=np.arange(0, n_samples))\n        stats_index = pd.Index(data=[&amp;#x27;count&amp;#x27;, &amp;#x27;mean&amp;#x27;, &amp;#x27;std&amp;#x27;, &amp;#x27;min&amp;#x27;, &amp;#x27;25%&amp;#x27;, &amp;#x27;50%&amp;#x27;, &amp;#x27;75%&amp;#x27;, &amp;#x27;max&amp;#x27;])\n        multi_index = pd.MultiIndex.from_product([sample_index, stats_index], names=[&amp;#x27;sample_id&amp;#x27;, &amp;#x27;statistic&amp;#x27;])\n    \n        percent_correct_direction = pd.DataFrame(index=multi_index,\n                                                 columns=[obs.observation_name for obs in embedding.observers])\n        percent_absolute_error = pd.DataFrame(index=multi_index,\n                                              columns=[obs.observation_name for obs in embedding.observers])\n        correlations = pd.DataFrame(index=sample_index,\n                                    columns=[obs.observation_name for obs in embedding.observers])\n    \n        # perform predictions\n        for i in range(n_samples):\n            # get a sample of non-library points for predictions\n            points = sample_points(embedding=embedding,\n                                   n_test_points=n_test_points,\n                                   split=split)\n            actuals = embedding.get_points(times=points.index + embedding.frequency)\n    \n            # perform the predictions\n            projections = projector.project(\n                embedding=embedding,\n                points=points,\n                steps=steps,\n                step_size=step_size)\n    \n            # compute percent absolute error statistics\n            error = actuals - projections.droplevel(0)\n    \n            correlations.loc[i] = projections.droplevel(0).corrwith(actuals)\n    \n            percent_absolute_error.loc[i] = (error / actuals).abs().describe().values\n    \n            # compute percent correct direction statistics\n            actual_change = actuals - points.values\n            predicted_change = projections.droplevel(0) - points.values\n    \n            percent_correct_direction.loc[i] = (predicted_change / actual_change).describe().values\n    \n        # compute sample estimates\n        mean_percent_absolute_error_hat = percent_absolute_error.xs(\n            key=&amp;#x27;mean&amp;#x27;,\n            level=&amp;#x27;statistic&amp;#x27;\n        ).mean()\n    \n        mean_percent_correct_direction_hat = percent_correct_direction.xs(\n            key=&amp;#x27;mean&amp;#x27;,\n            level=&amp;#x27;statistic&amp;#x27;\n        ).mean()\n    \n        correlation_hat = correlations.mean()\n    \n        # error histograms and attach to report\n        new_image_paths = [\n            plot_error_histogram(embedding=embedding, data=percent_absolute_error, statistic=&amp;#x27;mean&amp;#x27;,\n                                 title=&amp;quot;percent_absolute_error&amp;quot;,\n                                 figure_directory=os.getenv(&amp;#x27;PYTEST_REPORT_IMAGES&amp;#x27;),\n                                 n_samples=n_samples),\n            plot_error_histogram(embedding=embedding, data=percent_correct_direction, statistic=&amp;#x27;mean&amp;#x27;,\n                                 title=&amp;quot;percent_correct_direction&amp;quot;,\n                                 figure_directory=os.getenv(&amp;#x27;PYTEST_REPORT_IMAGES&amp;#x27;),\n                                 n_samples=n_samples),\n            plot_error_histogram(embedding=embedding, data=correlations, statistic=None,\n                                 title=&amp;quot;correlations&amp;quot;,\n                                 figure_directory=os.getenv(&amp;#x27;PYTEST_REPORT_IMAGES&amp;#x27;),\n                                 n_samples=n_samples)\n        ]\n    \n        # log distribution info\n        logger.info(&amp;#x27;mean_percent_absolute_error_statistics:&amp;#x27;)\n        logger.info(&amp;#x27;\\n&amp;#x27; + percent_absolute_error.xs(\n            key=&amp;#x27;mean&amp;#x27;,\n            level=&amp;#x27;statistic&amp;#x27;\n        ).astype(&amp;#x27;float&amp;#x27;).describe().to_string())\n    \n        logger.info(&amp;#x27;mean_percent_correct_direction_statistics:&amp;#x27;)\n        logger.info(&amp;#x27;\\n&amp;#x27; + percent_correct_direction.xs(\n            key=&amp;#x27;mean&amp;#x27;,\n            level=&amp;#x27;statistic&amp;#x27;\n        ).astype(&amp;#x27;float&amp;#x27;).describe().to_string())\n    \n        logger.info(&amp;#x27;correlation_statistics:&amp;#x27;)\n        logger.info(&amp;#x27;\\n&amp;#x27; + correlations.astype(&amp;#x27;float&amp;#x27;).describe().to_string())\n    \n        for path in new_image_paths:\n            image_paths.append(path)\n    \n        assert (pcd_inf &amp;lt;= correlation_hat).all() and \\\n               (correlation_hat &amp;lt;= pcd_sup).all()\n        assert (mean_percent_absolute_error_hat &amp;lt; pae_sup).all()\n&amp;gt;       assert (pcd_inf &amp;lt;= mean_percent_correct_direction_hat).all() and \\\n               (mean_percent_correct_direction_hat &amp;lt;= pcd_sup).all()\nE       assert (False)\nE        +  where False = &amp;lt;bound method NDFrame._add_numeric_operations.&amp;lt;locals&amp;gt;.all of X          False\\nX_(t-1)     True\\nX_(t-2)     True\\ndtype: bool&amp;gt;()\nE        +    where &amp;lt;bound method NDFrame._add_numeric_operations.&amp;lt;locals&amp;gt;.all of X          False\\nX_(t-1)     True\\nX_(t-2)     True\\ndtype: bool&amp;gt; = 0.95 &amp;lt;= X          0.918714\\nX_(t-1)    0.958055\\nX_(t-2)    0.999930\\ndtype: float64.all\n\ntests/unit/modelling_tools/projectors/conftest.py:203: AssertionError\n\n---------------------------- Captured stderr setup -----------------------------\n2024-01-11 08:51:10,527 [INFO] Compiling the state space embedding with 3 observers...\n2024-01-11 08:51:10,528 [INFO] Data size: (1000, 2), Library times: 497\n2024-01-11 08:51:10,529 [INFO] State space embedding compiled. Block size: (497, 3)\n2024-01-11 08:51:10,529 [INFO] Embedding created.\n\n------------------------------ Captured log setup ------------------------------\nINFO     root:embedding.py:156 Compiling the state space embedding with 3 observers...\nINFO     root:embedding.py:157 Data size: (1000, 2), Library times: 497\nINFO     root:embedding.py:179 State space embedding compiled. Block size: (497, 3)\nINFO     root:embedding.py:146 Embedding created.\n\n----------------------------- Captured stderr call -----------------------------\n2024-01-11 08:51:13,572 [INFO] mean_percent_absolute_error_statistics:\n2024-01-11 08:51:13,575 [INFO] \n                X     X_(t-1)     X_(t-2)\ncount  100.000000  100.000000  100.000000\nmean     0.070899    0.041022    0.024891\nstd      0.019811    0.017620    0.015913\nmin      0.029258    0.013607    0.003376\n25%      0.055876    0.026547    0.010736\n50%      0.068366    0.034621    0.016857\n75%      0.085779    0.058185    0.041560\nmax      0.115576    0.076312    0.053656\n2024-01-11 08:51:13,575 [INFO] mean_percent_correct_direction_statistics:\n2024-01-11 08:51:13,578 [INFO] \n                X     X_(t-1)     X_(t-2)\ncount  100.000000  100.000000  100.000000\nmean     0.918714    0.958055    0.999930\nstd      0.058571    0.052903    0.024366\nmin      0.697979    0.834151    0.943451\n25%      0.887805    0.920163    0.984643\n50%      0.920785    0.953757    1.002862\n75%      0.958979    0.993902    1.012437\nmax      1.051042    1.095049    1.065742\n2024-01-11 08:51:13,578 [INFO] correlation_statistics:\n2024-01-11 08:51:13,580 [INFO] \n                X     X_(t-1)     X_(t-2)\ncount  100.000000  100.000000  100.000000\nmean     0.999672    0.999903    0.999985\nstd      0.000044    0.000013    0.000003\nmin      0.999542    0.999861    0.999975\n25%      0.999645    0.999894    0.999983\n50%      0.999678    0.999903    0.999985\n75%      0.999706    0.999913    0.999986\nmax      0.999750    0.999926    0.999990\n\n------------------------------ Captured log call -------------------------------\nINFO     tests.unit.modelling_tools.projectors.conftest:conftest.py:182 mean_percent_absolute_error_statistics:\nINFO     tests.unit.modelling_tools.projectors.conftest:conftest.py:183 \n                X     X_(t-1)     X_(t-2)\ncount  100.000000  100.000000  100.000000\nmean     0.070899    0.041022    0.024891\nstd      0.019811    0.017620    0.015913\nmin      0.029258    0.013607    0.003376\n25%      0.055876    0.026547    0.010736\n50%      0.068366    0.034621    0.016857\n75%      0.085779    0.058185    0.041560\nmax      0.115576    0.076312    0.053656\nINFO     tests.unit.modelling_tools.projectors.conftest:conftest.py:188 mean_percent_correct_direction_statistics:\nINFO     tests.unit.modelling_tools.projectors.conftest:conftest.py:189 \n                X     X_(t-1)     X_(t-2)\ncount  100.000000  100.000000  100.000000\nmean     0.918714    0.958055    0.999930\nstd      0.058571    0.052903    0.024366\nmin      0.697979    0.834151    0.943451\n25%      0.887805    0.920163    0.984643\n50%      0.920785    0.953757    1.002862\n75%      0.958979    0.993902    1.012437\nmax      1.051042    1.095049    1.065742\nINFO     tests.unit.modelling_tools.projectors.conftest:conftest.py:194 correlation_statistics:\nINFO     tests.unit.modelling_tools.projectors.conftest:conftest.py:195 \n                X     X_(t-1)     X_(t-2)\ncount  100.000000  100.000000  100.000000\nmean     0.999672    0.999903    0.999985\nstd      0.000044    0.000013    0.000003\nmin      0.999542    0.999861    0.999975\n25%      0.999645    0.999894    0.999983\n50%      0.999678    0.999903    0.999985\n75%      0.999706    0.999913    0.999986\nmax      0.999750    0.999926    0.999990\n\n&#34;}], &#34;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_build_prediction_index[1-1-data_set0-3-0.5-10]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_build_prediction_index[1-1-data_set0-3-0.5-10]&#34;, &#34;duration&#34;: &#34;19 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_build_prediction_index[1-1-data_set0-3-0.5-10]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;19 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;---------------------------- Captured stderr setup -----------------------------\n2024-01-11 08:51:13,603 [INFO] Compiling the state space embedding with 3 observers...\n2024-01-11 08:51:13,603 [INFO] Data size: (100, 3), Library times: 47\n2024-01-11 08:51:13,605 [INFO] State space embedding compiled. Block size: (47, 3)\n2024-01-11 08:51:13,605 [INFO] Embedding created.\n\n------------------------------ Captured log setup ------------------------------\nINFO     root:embedding.py:156 Compiling the state space embedding with 3 observers...\nINFO     root:embedding.py:157 Data size: (100, 3), Library times: 47\nINFO     root:embedding.py:179 State space embedding compiled. Block size: (47, 3)\nINFO     root:embedding.py:146 Embedding created.\n&#34;}], &#34;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_projection[1-1-data_set0-3-0.5-10]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_projection[1-1-data_set0-3-0.5-10]&#34;, &#34;duration&#34;: &#34;42 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_projection[1-1-data_set0-3-0.5-10]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;42 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_build_prediction_index[1-3-data_set0-3-0.5-10]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_build_prediction_index[1-3-data_set0-3-0.5-10]&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_build_prediction_index[1-3-data_set0-3-0.5-10]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_build_prediction_index[3-1-data_set0-3-0.5-10]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_build_prediction_index[3-1-data_set0-3-0.5-10]&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_build_prediction_index[3-1-data_set0-3-0.5-10]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_build_prediction_index[3-3-data_set0-3-0.5-10]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_build_prediction_index[3-3-data_set0-3-0.5-10]&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestSmoke::test_build_prediction_index[3-3-data_set0-3-0.5-10]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestPerformance::test_projection_performance[10-1-data_set0-3-0.5-100-100-0.1-0.95-1.05-5.0]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestPerformance::test_projection_performance[10-1-data_set0-3-0.5-100-100-0.1-0.95-1.05-5.0]&#34;, &#34;duration&#34;: &#34;00:00:03&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestPerformance::test_projection_performance[10-1-data_set0-3-0.5-100-100-0.1-0.95-1.05-5.0]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:03&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;self = &amp;lt;tests.unit.modelling_tools.projectors.weighted_least_squares.test_weighted_least_squares.TestPerformance object at 0x13a1ff1f0&amp;gt;\nprojector = Weighted Least Squares Projector:\n\tNorm:\t&amp;lt;edynamics.modelling_tools.norms.minkowski.Minkowski object at 0x12b58d640&amp;gt;\n\tKernel:\tExponential Kernel:\n\tTheta:5.0\nembedding = Embedding:\n\tObservers:\t&amp;lt;edynamics.modelling_tools.observers.observers.Lag object at 0x14bc3b670&amp;gt;, &amp;lt;edynamics.modelling...&amp;gt;, &amp;lt;edynamics.modelling_tools.observers.observers.Lag object at 0x13a2273d0&amp;gt;\n\tData:\t\t&amp;#x27;X&amp;#x27;, &amp;#x27;Y&amp;#x27;, &amp;#x27;Z&amp;#x27;\n\tFrequency:\t&amp;lt;Second&amp;gt;\ntheta = 5.0, split = 0.5, n_test_points = 100, steps = 10, step_size = 1, n_samples = 100, pae_sup = 0.1, pcd_inf = 0.95, pcd_sup = 1.05, image_paths = []\n\n    @pytest.mark.parametrize(&amp;#x27;steps, step_size&amp;#x27;,\n                             [(10, 1)])\n    def test_projection_performance(self,\n                                    projector: WeightedLeastSquares,\n                                    embedding: Embedding,\n                                    theta: float,\n                                    split: float,\n                                    n_test_points: int,\n                                    steps: int,\n                                    step_size: int,\n                                    n_samples: int,\n                                    pae_sup: float,\n                                    pcd_inf: float,\n                                    pcd_sup: float,\n                                    image_paths):\n        projector.kernel.theta = theta\n&amp;gt;       projection_performance(\n            projector=projector, embedding=embedding, split=split, n_test_points=n_test_points, steps=steps,\n            step_size=step_size, n_samples=n_samples, pae_sup=pae_sup, pcd_inf=pcd_inf, pcd_sup=pcd_sup,\n            image_paths=image_paths)\n\ntests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py:72: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\ntests/unit/modelling_tools/projectors/conftest.py:148: in projection_performance\n    predicted_change = projections.droplevel(0) - points.values\nvenv/lib/python3.9/site-packages/pandas/core/ops/common.py:72: in new_method\n    return method(self, other)\nvenv/lib/python3.9/site-packages/pandas/core/arraylike.py:110: in __sub__\n    return self._arith_method(other, operator.sub)\nvenv/lib/python3.9/site-packages/pandas/core/frame.py:7592: in _arith_method\n    self, other = ops.align_method_FRAME(self, other, axis, flex=True, level=None)\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\nleft =                             X   X_(t-1)   X_(t-2)\nPrediction_Time                                  \n2024-01-11 08:55:3...01-11 08:59:40  0.262489  3.797834  7.630915\n2024-01-11 08:59:41 -2.436508  0.262489  3.797834\n\n[1000 rows x 3 columns]\nright = array([[ -1.93850684,  -2.31175147,  -3.30045589],\n       [ -2.39956599,  -1.99462857,  -1.93850684],\n       [ -3.1724..., -10.58678055],\n       [-15.02926868, -17.65314443, -15.14118372],\n       [ -9.02548308, -15.02926868, -17.65314443]])\naxis = 1, flex = True, level = None\n\n    def align_method_FRAME(\n        left, right, axis, flex: bool | None = False, level: Level = None\n    ):\n        &amp;quot;&amp;quot;&amp;quot;\n        Convert rhs to meet lhs dims if input is list, tuple or np.ndarray.\n    \n        Parameters\n        ----------\n        left : DataFrame\n        right : Any\n        axis : int, str, or None\n        flex : bool or None, default False\n            Whether this is a flex op, in which case we reindex.\n            None indicates not to check for alignment.\n        level : int or level name, default None\n    \n        Returns\n        -------\n        left : DataFrame\n        right : Any\n        &amp;quot;&amp;quot;&amp;quot;\n    \n        def to_series(right):\n            msg = &amp;quot;Unable to coerce to Series, length must be {req_len}: given {given_len}&amp;quot;\n            if axis is not None and left._get_axis_name(axis) == &amp;quot;index&amp;quot;:\n                if len(left.index) != len(right):\n                    raise ValueError(\n                        msg.format(req_len=len(left.index), given_len=len(right))\n                    )\n                right = left._constructor_sliced(right, index=left.index)\n            else:\n                if len(left.columns) != len(right):\n                    raise ValueError(\n                        msg.format(req_len=len(left.columns), given_len=len(right))\n                    )\n                right = left._constructor_sliced(right, index=left.columns)\n            return right\n    \n        if isinstance(right, np.ndarray):\n    \n            if right.ndim == 1:\n                right = to_series(right)\n    \n            elif right.ndim == 2:\n                if right.shape == left.shape:\n                    right = left._constructor(right, index=left.index, columns=left.columns)\n    \n                elif right.shape[0] == left.shape[0] and right.shape[1] == 1:\n                    # Broadcast across columns\n                    right = np.broadcast_to(right, left.shape)\n                    right = left._constructor(right, index=left.index, columns=left.columns)\n    \n                elif right.shape[1] == left.shape[1] and right.shape[0] == 1:\n                    # Broadcast along rows\n                    right = to_series(right[0, :])\n    \n                else:\n&amp;gt;                   raise ValueError(\n                        &amp;quot;Unable to coerce to DataFrame, shape &amp;quot;\n                        f&amp;quot;must be {left.shape}: given {right.shape}&amp;quot;\n                    )\nE                   ValueError: Unable to coerce to DataFrame, shape must be (1000, 3): given (100, 3)\n\nvenv/lib/python3.9/site-packages/pandas/core/ops/__init__.py:264: ValueError\n\n---------------------------- Captured stderr setup -----------------------------\n2024-01-11 08:51:13,669 [INFO] Compiling the state space embedding with 3 observers...\n2024-01-11 08:51:13,669 [INFO] Data size: (1000, 3), Library times: 497\n2024-01-11 08:51:13,670 [INFO] State space embedding compiled. Block size: (497, 3)\n2024-01-11 08:51:13,670 [INFO] Embedding created.\n\n------------------------------ Captured log setup ------------------------------\nINFO     root:embedding.py:156 Compiling the state space embedding with 3 observers...\nINFO     root:embedding.py:157 Data size: (1000, 3), Library times: 497\nINFO     root:embedding.py:179 State space embedding compiled. Block size: (497, 3)\nINFO     root:embedding.py:146 Embedding created.\n&#34;}], &#34;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestPerformance::test_projection_performance[10-1-data_set1-3-0.5-100-100-0.1-0.95-1.05-5.0]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestPerformance::test_projection_performance[10-1-data_set1-3-0.5-100-100-0.1-0.95-1.05-5.0]&#34;, &#34;duration&#34;: &#34;00:00:03&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py::TestPerformance::test_projection_performance[10-1-data_set1-3-0.5-100-100-0.1-0.95-1.05-5.0]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:03&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;self = &amp;lt;tests.unit.modelling_tools.projectors.weighted_least_squares.test_weighted_least_squares.TestPerformance object at 0x13a1ff280&amp;gt;\nprojector = Weighted Least Squares Projector:\n\tNorm:\t&amp;lt;edynamics.modelling_tools.norms.minkowski.Minkowski object at 0x12b58d640&amp;gt;\n\tKernel:\tExponential Kernel:\n\tTheta:5.0\nembedding = Embedding:\n\tObservers:\t&amp;lt;edynamics.modelling_tools.observers.observers.Lag object at 0x16c1f8550&amp;gt;, &amp;lt;edynamics.modelling...f87c0&amp;gt;, &amp;lt;edynamics.modelling_tools.observers.observers.Lag object at 0x16c1f8760&amp;gt;\n\tData:\t\t&amp;#x27;X&amp;#x27;, &amp;#x27;Y&amp;#x27;\n\tFrequency:\t&amp;lt;Second&amp;gt;\ntheta = 5.0, split = 0.5, n_test_points = 100, steps = 10, step_size = 1, n_samples = 100, pae_sup = 0.1, pcd_inf = 0.95, pcd_sup = 1.05, image_paths = []\n\n    @pytest.mark.parametrize(&amp;#x27;steps, step_size&amp;#x27;,\n                             [(10, 1)])\n    def test_projection_performance(self,\n                                    projector: WeightedLeastSquares,\n                                    embedding: Embedding,\n                                    theta: float,\n                                    split: float,\n                                    n_test_points: int,\n                                    steps: int,\n                                    step_size: int,\n                                    n_samples: int,\n                                    pae_sup: float,\n                                    pcd_inf: float,\n                                    pcd_sup: float,\n                                    image_paths):\n        projector.kernel.theta = theta\n&amp;gt;       projection_performance(\n            projector=projector, embedding=embedding, split=split, n_test_points=n_test_points, steps=steps,\n            step_size=step_size, n_samples=n_samples, pae_sup=pae_sup, pcd_inf=pcd_inf, pcd_sup=pcd_sup,\n            image_paths=image_paths)\n\ntests/unit/modelling_tools/projectors/weighted_least_squares/test_weighted_least_squares.py:72: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\ntests/unit/modelling_tools/projectors/conftest.py:148: in projection_performance\n    predicted_change = projections.droplevel(0) - points.values\nvenv/lib/python3.9/site-packages/pandas/core/ops/common.py:72: in new_method\n    return method(self, other)\nvenv/lib/python3.9/site-packages/pandas/core/arraylike.py:110: in __sub__\n    return self._arith_method(other, operator.sub)\nvenv/lib/python3.9/site-packages/pandas/core/frame.py:7592: in _arith_method\n    self, other = ops.align_method_FRAME(self, other, axis, flex=True, level=None)\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\nleft =                             X   X_(t-1)   X_(t-2)\nPrediction_Time                                  \n2024-01-11 08:55:3...01-11 08:59:44  0.371458  0.368503  0.366515\n2024-01-11 08:59:45  0.375382  0.371458  0.368503\n\n[1000 rows x 3 columns]\nright = array([[ 1.29572582e+00,  1.31837276e+00,  1.33806889e+00],\n       [ 1.21268112e+00,  1.24260719e+00,  1.27038119e+00]...      [ 4.72874200e-01,  4.86235590e-01,  5.00212201e-01],\n       [ 3.79401243e-01,  3.85006421e-01,  3.91528633e-01]])\naxis = 1, flex = True, level = None\n\n    def align_method_FRAME(\n        left, right, axis, flex: bool | None = False, level: Level = None\n    ):\n        &amp;quot;&amp;quot;&amp;quot;\n        Convert rhs to meet lhs dims if input is list, tuple or np.ndarray.\n    \n        Parameters\n        ----------\n        left : DataFrame\n        right : Any\n        axis : int, str, or None\n        flex : bool or None, default False\n            Whether this is a flex op, in which case we reindex.\n            None indicates not to check for alignment.\n        level : int or level name, default None\n    \n        Returns\n        -------\n        left : DataFrame\n        right : Any\n        &amp;quot;&amp;quot;&amp;quot;\n    \n        def to_series(right):\n            msg = &amp;quot;Unable to coerce to Series, length must be {req_len}: given {given_len}&amp;quot;\n            if axis is not None and left._get_axis_name(axis) == &amp;quot;index&amp;quot;:\n                if len(left.index) != len(right):\n                    raise ValueError(\n                        msg.format(req_len=len(left.index), given_len=len(right))\n                    )\n                right = left._constructor_sliced(right, index=left.index)\n            else:\n                if len(left.columns) != len(right):\n                    raise ValueError(\n                        msg.format(req_len=len(left.columns), given_len=len(right))\n                    )\n                right = left._constructor_sliced(right, index=left.columns)\n            return right\n    \n        if isinstance(right, np.ndarray):\n    \n            if right.ndim == 1:\n                right = to_series(right)\n    \n            elif right.ndim == 2:\n                if right.shape == left.shape:\n                    right = left._constructor(right, index=left.index, columns=left.columns)\n    \n                elif right.shape[0] == left.shape[0] and right.shape[1] == 1:\n                    # Broadcast across columns\n                    right = np.broadcast_to(right, left.shape)\n                    right = left._constructor(right, index=left.index, columns=left.columns)\n    \n                elif right.shape[1] == left.shape[1] and right.shape[0] == 1:\n                    # Broadcast along rows\n                    right = to_series(right[0, :])\n    \n                else:\n&amp;gt;                   raise ValueError(\n                        &amp;quot;Unable to coerce to DataFrame, shape &amp;quot;\n                        f&amp;quot;must be {left.shape}: given {right.shape}&amp;quot;\n                    )\nE                   ValueError: Unable to coerce to DataFrame, shape must be (1000, 3): given (100, 3)\n\nvenv/lib/python3.9/site-packages/pandas/core/ops/__init__.py:264: ValueError\n\n---------------------------- Captured stderr setup -----------------------------\n2024-01-11 08:51:16,887 [INFO] Compiling the state space embedding with 3 observers...\n2024-01-11 08:51:16,887 [INFO] Data size: (1000, 2), Library times: 497\n2024-01-11 08:51:16,888 [INFO] State space embedding compiled. Block size: (497, 3)\n2024-01-11 08:51:16,888 [INFO] Embedding created.\n\n------------------------------ Captured log setup ------------------------------\nINFO     root:embedding.py:156 Compiling the state space embedding with 3 observers...\nINFO     root:embedding.py:157 Data size: (1000, 2), Library times: 497\nINFO     root:embedding.py:179 State space embedding compiled. Block size: (497, 3)\nINFO     root:embedding.py:146 Embedding created.\n&#34;}]}, &#34;renderCollapsed&#34;: [&#34;passed&#34;], &#34;initialSort&#34;: &#34;result&#34;, &#34;title&#34;: &#34;report.html&#34;}"></div>
+    <script>
+      (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+const { getCollapsedCategory, setCollapsedIds } = require('./storage.js')
+
+class DataManager {
+    setManager(data) {
+        const collapsedCategories = [...getCollapsedCategory(data.renderCollapsed)]
+        const collapsedIds = []
+        const tests = Object.values(data.tests).flat().map((test, index) => {
+            const collapsed = collapsedCategories.includes(test.result.toLowerCase())
+            const id = `test_${index}`
+            if (collapsed) {
+                collapsedIds.push(id)
+            }
+            return {
+                ...test,
+                id,
+                collapsed,
+            }
+        })
+        const dataBlob = { ...data, tests }
+        this.data = { ...dataBlob }
+        this.renderData = { ...dataBlob }
+        setCollapsedIds(collapsedIds)
+    }
+
+    get allData() {
+        return { ...this.data }
+    }
+
+    resetRender() {
+        this.renderData = { ...this.data }
+    }
+
+    setRender(data) {
+        this.renderData.tests = [...data]
+    }
+
+    toggleCollapsedItem(id) {
+        this.renderData.tests = this.renderData.tests.map((test) =>
+            test.id === id ? { ...test, collapsed: !test.collapsed } : test,
+        )
+    }
+
+    set allCollapsed(collapsed) {
+        this.renderData = { ...this.renderData, tests: [...this.renderData.tests.map((test) => (
+            { ...test, collapsed }
+        ))] }
+    }
+
+    get testSubset() {
+        return [...this.renderData.tests]
+    }
+
+    get environment() {
+        return this.renderData.environment
+    }
+
+    get initialSort() {
+        return this.data.initialSort
+    }
+}
+
+module.exports = {
+    manager: new DataManager(),
+}
+
+},{"./storage.js":8}],2:[function(require,module,exports){
+const mediaViewer = require('./mediaviewer.js')
+const templateEnvRow = document.getElementById('template_environment_row')
+const templateResult = document.getElementById('template_results-table__tbody')
+
+function htmlToElements(html) {
+    const temp = document.createElement('template')
+    temp.innerHTML = html
+    return temp.content.childNodes
+}
+
+const find = (selector, elem) => {
+    if (!elem) {
+        elem = document
+    }
+    return elem.querySelector(selector)
+}
+
+const findAll = (selector, elem) => {
+    if (!elem) {
+        elem = document
+    }
+    return [...elem.querySelectorAll(selector)]
+}
+
+const dom = {
+    getStaticRow: (key, value) => {
+        const envRow = templateEnvRow.content.cloneNode(true)
+        const isObj = typeof value === 'object' && value !== null
+        const values = isObj ? Object.keys(value).map((k) => `${k}: ${value[k]}`) : null
+
+        const valuesElement = htmlToElements(
+            values ? `<ul>${values.map((val) => `<li>${val}</li>`).join('')}<ul>` : `<div>${value}</div>`)[0]
+        const td = findAll('td', envRow)
+        td[0].textContent = key
+        td[1].appendChild(valuesElement)
+
+        return envRow
+    },
+    getResultTBody: ({ testId, id, log, extras, resultsTableRow, tableHtml, result, collapsed }) => {
+        const resultBody = templateResult.content.cloneNode(true)
+        resultBody.querySelector('tbody').classList.add(result.toLowerCase())
+        resultBody.querySelector('tbody').id = testId
+        resultBody.querySelector('.collapsible').dataset.id = id
+
+        resultsTableRow.forEach((html) => {
+            const t = document.createElement('template')
+            t.innerHTML = html
+            resultBody.querySelector('.collapsible').appendChild(t.content)
+        })
+
+        if (log) {
+            // Wrap lines starting with "E" with span.error to color those lines red
+            const wrappedLog = log.replace(/^E.*$/gm, (match) => `<span class="error">${match}</span>`)
+            resultBody.querySelector('.log').innerHTML = wrappedLog
+        } else {
+            resultBody.querySelector('.log').remove()
+        }
+
+        if (collapsed) {
+            resultBody.querySelector('.collapsible > td')?.classList.add('collapsed')
+            resultBody.querySelector('.extras-row').classList.add('hidden')
+        } else {
+            resultBody.querySelector('.collapsible > td')?.classList.remove('collapsed')
+        }
+
+        const media = []
+        extras?.forEach(({ name, format_type, content }) => {
+            if (['image', 'video'].includes(format_type)) {
+                media.push({ path: content, name, format_type })
+            }
+
+            if (format_type === 'html') {
+                resultBody.querySelector('.extraHTML').insertAdjacentHTML('beforeend', `<div>${content}</div>`)
+            }
+        })
+        mediaViewer.setup(resultBody, media)
+
+        // Add custom html from the pytest_html_results_table_html hook
+        tableHtml?.forEach((item) => {
+            resultBody.querySelector('td[class="extra"]').insertAdjacentHTML('beforeend', item)
+        })
+
+        return resultBody
+    },
+}
+
+module.exports = {
+    dom,
+    htmlToElements,
+    find,
+    findAll,
+}
+
+},{"./mediaviewer.js":6}],3:[function(require,module,exports){
+const { manager } = require('./datamanager.js')
+const { doSort } = require('./sort.js')
+const storageModule = require('./storage.js')
+
+const getFilteredSubSet = (filter) =>
+    manager.allData.tests.filter(({ result }) => filter.includes(result.toLowerCase()))
+
+const doInitFilter = () => {
+    const currentFilter = storageModule.getVisible()
+    const filteredSubset = getFilteredSubSet(currentFilter)
+    manager.setRender(filteredSubset)
+}
+
+const doFilter = (type, show) => {
+    if (show) {
+        storageModule.showCategory(type)
+    } else {
+        storageModule.hideCategory(type)
+    }
+
+    const currentFilter = storageModule.getVisible()
+    const filteredSubset = getFilteredSubSet(currentFilter)
+    manager.setRender(filteredSubset)
+
+    const sortColumn = storageModule.getSort()
+    doSort(sortColumn, true)
+}
+
+module.exports = {
+    doFilter,
+    doInitFilter,
+}
+
+},{"./datamanager.js":1,"./sort.js":7,"./storage.js":8}],4:[function(require,module,exports){
+const { redraw, bindEvents, renderStatic } = require('./main.js')
+const { doInitFilter } = require('./filter.js')
+const { doInitSort } = require('./sort.js')
+const { manager } = require('./datamanager.js')
+const data = JSON.parse(document.getElementById('data-container').dataset.jsonblob)
+
+function init() {
+    manager.setManager(data)
+    doInitFilter()
+    doInitSort()
+    renderStatic()
+    redraw()
+    bindEvents()
+}
+
+init()
+
+},{"./datamanager.js":1,"./filter.js":3,"./main.js":5,"./sort.js":7}],5:[function(require,module,exports){
+const { dom, find, findAll } = require('./dom.js')
+const { manager } = require('./datamanager.js')
+const { doSort } = require('./sort.js')
+const { doFilter } = require('./filter.js')
+const {
+    getVisible,
+    getCollapsedIds,
+    setCollapsedIds,
+    getSort,
+    getSortDirection,
+    possibleFilters,
+} = require('./storage.js')
+
+const removeChildren = (node) => {
+    while (node.firstChild) {
+        node.removeChild(node.firstChild)
+    }
+}
+
+const renderStatic = () => {
+    const renderEnvironmentTable = () => {
+        const environment = manager.environment
+        const rows = Object.keys(environment).map((key) => dom.getStaticRow(key, environment[key]))
+        const table = document.getElementById('environment')
+        removeChildren(table)
+        rows.forEach((row) => table.appendChild(row))
+    }
+    renderEnvironmentTable()
+}
+
+const addItemToggleListener = (elem) => {
+    elem.addEventListener('click', ({ target }) => {
+        const id = target.parentElement.dataset.id
+        manager.toggleCollapsedItem(id)
+
+        const collapsedIds = getCollapsedIds()
+        if (collapsedIds.includes(id)) {
+            const updated = collapsedIds.filter((item) => item !== id)
+            setCollapsedIds(updated)
+        } else {
+            collapsedIds.push(id)
+            setCollapsedIds(collapsedIds)
+        }
+        redraw()
+    })
+}
+
+const renderContent = (tests) => {
+    const sortAttr = getSort(manager.initialSort)
+    const sortAsc = JSON.parse(getSortDirection())
+    const rows = tests.map(dom.getResultTBody)
+    const table = document.getElementById('results-table')
+    const tableHeader = document.getElementById('results-table-head')
+
+    const newTable = document.createElement('table')
+    newTable.id = 'results-table'
+
+    // remove all sorting classes and set the relevant
+    findAll('.sortable', tableHeader).forEach((elem) => elem.classList.remove('asc', 'desc'))
+    tableHeader.querySelector(`.sortable[data-column-type="${sortAttr}"]`)?.classList.add(sortAsc ? 'desc' : 'asc')
+    newTable.appendChild(tableHeader)
+
+    if (!rows.length) {
+        const emptyTable = document.getElementById('template_results-table__body--empty').content.cloneNode(true)
+        newTable.appendChild(emptyTable)
+    } else {
+        rows.forEach((row) => {
+            if (!!row) {
+                findAll('.collapsible td:not(.col-links', row).forEach(addItemToggleListener)
+                find('.logexpander', row).addEventListener('click',
+                    (evt) => evt.target.parentNode.classList.toggle('expanded'),
+                )
+                newTable.appendChild(row)
+            }
+        })
+    }
+
+    table.replaceWith(newTable)
+}
+
+const renderDerived = () => {
+    const currentFilter = getVisible()
+    possibleFilters.forEach((result) => {
+        const input = document.querySelector(`input[data-test-result="${result}"]`)
+        input.checked = currentFilter.includes(result)
+    })
+}
+
+const bindEvents = () => {
+    const filterColumn = (evt) => {
+        const { target: element } = evt
+        const { testResult } = element.dataset
+
+        doFilter(testResult, element.checked)
+        const collapsedIds = getCollapsedIds()
+        const updated = manager.renderData.tests.map((test) => {
+            return {
+                ...test,
+                collapsed: collapsedIds.includes(test.id),
+            }
+        })
+        manager.setRender(updated)
+        redraw()
+    }
+
+    const header = document.getElementById('environment-header')
+    header.addEventListener('click', () => {
+        const table = document.getElementById('environment')
+        table.classList.toggle('hidden')
+        header.classList.toggle('collapsed')
+    })
+
+    findAll('input[name="filter_checkbox"]').forEach((elem) => {
+        elem.addEventListener('click', filterColumn)
+    })
+
+    findAll('.sortable').forEach((elem) => {
+        elem.addEventListener('click', (evt) => {
+            const { target: element } = evt
+            const { columnType } = element.dataset
+            doSort(columnType)
+            redraw()
+        })
+    })
+
+    document.getElementById('show_all_details').addEventListener('click', () => {
+        manager.allCollapsed = false
+        setCollapsedIds([])
+        redraw()
+    })
+    document.getElementById('hide_all_details').addEventListener('click', () => {
+        manager.allCollapsed = true
+        const allIds = manager.renderData.tests.map((test) => test.id)
+        setCollapsedIds(allIds)
+        redraw()
+    })
+}
+
+const redraw = () => {
+    const { testSubset } = manager
+
+    renderContent(testSubset)
+    renderDerived()
+}
+
+module.exports = {
+    redraw,
+    bindEvents,
+    renderStatic,
+}
+
+},{"./datamanager.js":1,"./dom.js":2,"./filter.js":3,"./sort.js":7,"./storage.js":8}],6:[function(require,module,exports){
+class MediaViewer {
+    constructor(assets) {
+        this.assets = assets
+        this.index = 0
+    }
+
+    nextActive() {
+        this.index = this.index === this.assets.length - 1 ? 0 : this.index + 1
+        return [this.activeFile, this.index]
+    }
+
+    prevActive() {
+        this.index = this.index === 0 ? this.assets.length - 1 : this.index -1
+        return [this.activeFile, this.index]
+    }
+
+    get currentIndex() {
+        return this.index
+    }
+
+    get activeFile() {
+        return this.assets[this.index]
+    }
+}
+
+
+const setup = (resultBody, assets) => {
+    if (!assets.length) {
+        resultBody.querySelector('.media').classList.add('hidden')
+        return
+    }
+
+    const mediaViewer = new MediaViewer(assets)
+    const container = resultBody.querySelector('.media-container')
+    const leftArrow = resultBody.querySelector('.media-container__nav--left')
+    const rightArrow = resultBody.querySelector('.media-container__nav--right')
+    const mediaName = resultBody.querySelector('.media__name')
+    const counter = resultBody.querySelector('.media__counter')
+    const imageEl = resultBody.querySelector('img')
+    const sourceEl = resultBody.querySelector('source')
+    const videoEl = resultBody.querySelector('video')
+
+    const setImg = (media, index) => {
+        if (media?.format_type === 'image') {
+            imageEl.src = media.path
+
+            imageEl.classList.remove('hidden')
+            videoEl.classList.add('hidden')
+        } else if (media?.format_type === 'video') {
+            sourceEl.src = media.path
+
+            videoEl.classList.remove('hidden')
+            imageEl.classList.add('hidden')
+        }
+
+        mediaName.innerText = media?.name
+        counter.innerText = `${index + 1} / ${assets.length}`
+    }
+    setImg(mediaViewer.activeFile, mediaViewer.currentIndex)
+
+    const moveLeft = () => {
+        const [media, index] = mediaViewer.prevActive()
+        setImg(media, index)
+    }
+    const doRight = () => {
+        const [media, index] = mediaViewer.nextActive()
+        setImg(media, index)
+    }
+    const openImg = () => {
+        window.open(mediaViewer.activeFile.path, '_blank')
+    }
+    if (assets.length === 1) {
+        container.classList.add('media-container--fullscreen')
+    } else {
+        leftArrow.addEventListener('click', moveLeft)
+        rightArrow.addEventListener('click', doRight)
+    }
+    imageEl.addEventListener('click', openImg)
+}
+
+module.exports = {
+    setup,
+}
+
+},{}],7:[function(require,module,exports){
+const { manager } = require('./datamanager.js')
+const storageModule = require('./storage.js')
+
+const genericSort = (list, key, ascending, customOrder) => {
+    let sorted
+    if (customOrder) {
+        sorted = list.sort((a, b) => {
+            const aValue = a.result.toLowerCase()
+            const bValue = b.result.toLowerCase()
+
+            const aIndex = customOrder.findIndex((item) => item.toLowerCase() === aValue)
+            const bIndex = customOrder.findIndex((item) => item.toLowerCase() === bValue)
+
+            // Compare the indices to determine the sort order
+            return aIndex - bIndex
+        })
+    } else {
+        sorted = list.sort((a, b) => a[key] === b[key] ? 0 : a[key] > b[key] ? 1 : -1)
+    }
+
+    if (ascending) {
+        sorted.reverse()
+    }
+    return sorted
+}
+
+const durationSort = (list, ascending) => {
+    const parseDuration = (duration) => {
+        if (duration.includes(':')) {
+            // If it's in the format "HH:mm:ss"
+            const [hours, minutes, seconds] = duration.split(':').map(Number)
+            return (hours * 3600 + minutes * 60 + seconds) * 1000
+        } else {
+            // If it's in the format "nnn ms"
+            return parseInt(duration)
+        }
+    }
+    const sorted = list.sort((a, b) => parseDuration(a['duration']) - parseDuration(b['duration']))
+    if (ascending) {
+        sorted.reverse()
+    }
+    return sorted
+}
+
+const doInitSort = () => {
+    const type = storageModule.getSort(manager.initialSort)
+    const ascending = storageModule.getSortDirection()
+    const list = manager.testSubset
+    const initialOrder = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed', 'Skipped', 'Passed']
+
+    storageModule.setSort(type)
+    storageModule.setSortDirection(ascending)
+
+    if (type?.toLowerCase() === 'original') {
+        manager.setRender(list)
+    } else {
+        let sortedList
+        switch (type) {
+        case 'duration':
+            sortedList = durationSort(list, ascending)
+            break
+        case 'result':
+            sortedList = genericSort(list, type, ascending, initialOrder)
+            break
+        default:
+            sortedList = genericSort(list, type, ascending)
+            break
+        }
+        manager.setRender(sortedList)
+    }
+}
+
+const doSort = (type, skipDirection) => {
+    const newSortType = storageModule.getSort(manager.initialSort) !== type
+    const currentAsc = storageModule.getSortDirection()
+    let ascending
+    if (skipDirection) {
+        ascending = currentAsc
+    } else {
+        ascending = newSortType ? false : !currentAsc
+    }
+    storageModule.setSort(type)
+    storageModule.setSortDirection(ascending)
+
+    const list = manager.testSubset
+    const sortedList = type === 'duration' ? durationSort(list, ascending) : genericSort(list, type, ascending)
+    manager.setRender(sortedList)
+}
+
+module.exports = {
+    doInitSort,
+    doSort,
+}
+
+},{"./datamanager.js":1,"./storage.js":8}],8:[function(require,module,exports){
+const possibleFilters = [
+    'passed',
+    'skipped',
+    'failed',
+    'error',
+    'xfailed',
+    'xpassed',
+    'rerun',
+]
+
+const getVisible = () => {
+    const url = new URL(window.location.href)
+    const settings = new URLSearchParams(url.search).get('visible')
+    const lower = (item) => {
+        const lowerItem = item.toLowerCase()
+        if (possibleFilters.includes(lowerItem)) {
+            return lowerItem
+        }
+        return null
+    }
+    return settings === null ?
+        possibleFilters :
+        [...new Set(settings?.split(',').map(lower).filter((item) => item))]
+}
+
+const hideCategory = (categoryToHide) => {
+    const url = new URL(window.location.href)
+    const visibleParams = new URLSearchParams(url.search).get('visible')
+    const currentVisible = visibleParams ? visibleParams.split(',') : [...possibleFilters]
+    const settings = [...new Set(currentVisible)].filter((f) => f !== categoryToHide).join(',')
+
+    url.searchParams.set('visible', settings)
+    window.history.pushState({}, null, unescape(url.href))
+}
+
+const showCategory = (categoryToShow) => {
+    if (typeof window === 'undefined') {
+        return
+    }
+    const url = new URL(window.location.href)
+    const currentVisible = new URLSearchParams(url.search).get('visible')?.split(',').filter(Boolean) ||
+        [...possibleFilters]
+    const settings = [...new Set([categoryToShow, ...currentVisible])]
+    const noFilter = possibleFilters.length === settings.length || !settings.length
+
+    noFilter ? url.searchParams.delete('visible') : url.searchParams.set('visible', settings.join(','))
+    window.history.pushState({}, null, unescape(url.href))
+}
+
+const getSort = (initialSort) => {
+    const url = new URL(window.location.href)
+    let sort = new URLSearchParams(url.search).get('sort')
+    if (!sort) {
+        sort = initialSort || 'result'
+    }
+    return sort
+}
+
+const setSort = (type) => {
+    const url = new URL(window.location.href)
+    url.searchParams.set('sort', type)
+    window.history.pushState({}, null, unescape(url.href))
+}
+
+const getCollapsedCategory = (renderCollapsed) => {
+    let categories
+    if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href)
+        const collapsedItems = new URLSearchParams(url.search).get('collapsed')
+        switch (true) {
+        case !renderCollapsed && collapsedItems === null:
+            categories = ['passed']
+            break
+        case collapsedItems?.length === 0 || /^["']{2}$/.test(collapsedItems):
+            categories = []
+            break
+        case /^all$/.test(collapsedItems) || collapsedItems === null && /^all$/.test(renderCollapsed):
+            categories = [...possibleFilters]
+            break
+        default:
+            categories = collapsedItems?.split(',').map((item) => item.toLowerCase()) || renderCollapsed
+            break
+        }
+    } else {
+        categories = []
+    }
+    return categories
+}
+
+const getSortDirection = () => JSON.parse(sessionStorage.getItem('sortAsc')) || false
+const setSortDirection = (ascending) => sessionStorage.setItem('sortAsc', ascending)
+
+const getCollapsedIds = () => JSON.parse(sessionStorage.getItem('collapsedIds')) || []
+const setCollapsedIds = (list) => sessionStorage.setItem('collapsedIds', JSON.stringify(list))
+
+module.exports = {
+    getVisible,
+    hideCategory,
+    showCategory,
+    getCollapsedIds,
+    setCollapsedIds,
+    getSort,
+    setSort,
+    getSortDirection,
+    setSortDirection,
+    getCollapsedCategory,
+    possibleFilters,
+}
+
+},{}]},{},[4]);
+    </script>
+  </footer>
+</html>

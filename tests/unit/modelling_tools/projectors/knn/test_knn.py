@@ -1,3 +1,5 @@
+import pytest
+
 from edynamics.modelling_tools.projectors import KNearestNeighbours
 
 from ..conftest import *
@@ -50,9 +52,9 @@ class TestSmoke:
         projection(embedding=embedding, projector=projector, points=points, steps=steps, step_size=step_size)
 
 
-@pytest.mark.parametrize('data_set, n_lags, split, n_test_points, n_samples, pae_sup, pcd_inf, pcd_sup',
-                         [({'type': 'lorenz', 'n_points': 1000}, 3, 0.5, 100, 100, 0.1, 0.95, 1.05),
-                          ({'type': 'duffing', 'n_points': 1000}, 3, 0.5, 100, 100, 0.1, 0.95, 1.05)],
+@pytest.mark.parametrize('data_set, n_lags, split, n_test_points, n_samples',
+                         [({'type': 'lorenz', 'n_points': 1000}, 3, 0.5, 100, 100),
+                          ({'type': 'duffing', 'n_points': 1000}, 3, 0.5, 100, 100)],
                          indirect=['data_set'],
                          scope="class")
 class TestPerformance:
@@ -70,10 +72,7 @@ class TestPerformance:
                                     steps: int,
                                     step_size: int,
                                     n_samples: int,
-                                    pae_sup: float,
-                                    pcd_inf: float,
-                                    pcd_sup: float,
-                                    request):
-        projection_performance(projector=projector, embedding=embedding, split=split, n_test_points=n_test_points,
-                               steps=steps, step_size=step_size, n_samples=n_samples, pae_sup=pae_sup,
-                               pcd_inf=pcd_inf, pcd_sup=pcd_sup, request=request)
+                                    image_paths):
+        projection_performance(
+            projector=projector, embedding=embedding, split=split, n_test_points=n_test_points, steps=steps,
+            step_size=step_size, n_samples=n_samples, image_paths=image_paths)

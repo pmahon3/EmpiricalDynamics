@@ -1,7 +1,6 @@
-from .embeddings import embedding
-from .estimators import dimensionality, nonlinearity
-from .norms import minkowski
-from .observers import lag, lag_moving_average
-from .optimizers import gnn_optimizer
-from .projectors import knn, smap
-from .kernels import exponential, epanechnikov, tricubic, constant
+from .embeddings import Embedding
+from .kernels import Exponential, Epanechnikov, Tricubic, constant
+from .mappers import convergent_cross_mapping
+from .norms import Minkowski
+from .observers import Lag, LagMovingAverage
+from .projectors import KNearestNeighbours, WeightedLeastSquares
