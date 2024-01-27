@@ -7,6 +7,8 @@ from scipy.spatial.distance import cdist
 from edynamics.modelling_tools.embeddings import Embedding
 from edynamics.modelling_tools.kernels import Kernel, Exponential
 from edynamics.modelling_tools.norms import Norm, Minkowski
+from sklearn.neighbors import KNeighborsClassifier
+
 from .projector import Projector
 
 
@@ -59,7 +61,7 @@ class KNearestNeighbours(Projector):
 
     """
 
-    def __init__(self, k: int, norm: Norm = Minkowski(p=2), kernel: Kernel = Exponential(theta=0)):
+    def __init__(self, k: int = None, norm: Norm = Minkowski(p=2), kernel: Kernel = Exponential(theta=0)):
         super().__init__(norm=norm, kernel=kernel)
         self.k = k
 
@@ -77,8 +79,15 @@ class KNearestNeighbours(Projector):
         :param leave_out: if true return the matrices of coefficients used to integrate each prediction.
         :return: the k projected points
         """
+
+        # k can be set as none for certain optimization schemes and set adaptively according the optimization schemes
+        #   manipulation of the embedding. In this case it is typically desired that k be set to:
+        #   k=embedding.dimension + 1, and then returned to none for the next iteration.
+        revert = False
         if self.k is None:
             self.k = embedding.dimension + 1
+            revert = True
+
 
         indices = self.build_prediction_index(
             frequency=embedding.frequency,
@@ -94,37 +103,55 @@ class KNearestNeighbours(Projector):
             reference_time = indices[i * steps][0]
             point = points.iloc[i].values
             for j in range(steps):
+                prediction_time = indices[i * steps + j][-1]
+
+                # if the current point is in the library and performing a leave one out prediction then exclude the
+                #   point at the reference time from the k nearest neighbours, otherwise just get the k nearest
+                #   neighbours
+                #
+                # check if the current point is in the embedding
                 try:
-                    prediction_time = indices[i * steps + j][-1]
-                    knn_idxs = embedding.get_k_nearest_neighbours(
-                        point=point, knn=self.k
-                    )
+                    embedding.block.loc[reference_time,:]
 
-                    # optimize: would self.Norm.distance_matrix be more direct here? It might be but using kernel.weigh
-                    #  allows for class specific error handling according to the kernel and its functional form
-                    weights = self.kernel.weigh(
-                        distance_matrix=cdist(
-                            point[np.newaxis, :], embedding.block.iloc[knn_idxs].values
+                    if leave_out:
+                        knn_count = [2, self.k + 1]
+
+                    else:
+                        knn_count = self.k
+
+                    knn_idxs = embedding.get_k_nearest_neighbours(point=point, knn=knn_count)
+                # if the current point isn't in the embedding just get the k nearest neighbours
+                except KeyError:
+                    knn_idxs = embedding.get_k_nearest_neighbours(point=point, knn=self.k)
+
+                # optimize: would self.Norm.distance_matrix be more direct here? It might be but using kernel.weigh
+                #  allows for class specific error handling according to the kernel and its functional form
+                weights = self.kernel.weigh(
+                    distance_matrix=cdist(
+                        point[np.newaxis, :], embedding.block.iloc[knn_idxs].values
+                    )
+                )
+
+                predictions.loc[(reference_time, prediction_time)] = (
+                        np.dot(
+                            weights, embedding.block.iloc[knn_idxs + step_size].values
                         )
-                    )
+                        / weights.sum()
+                )
 
-                    predictions.loc[(reference_time, prediction_time)] = (
-                            np.dot(
-                                weights, embedding.block.iloc[knn_idxs + step_size].values
-                            )
-                            / weights.sum()
-                    )
+                predictions = self.update_values(
+                    embedding=embedding,
+                    predictions=predictions,
+                    current_time=reference_time,
+                    prediction_time=prediction_time,
+                )
 
-                    if steps > 1:
-                        predictions = self.update_values(
-                            embedding=embedding,
-                            predictions=predictions,
-                            current_time=reference_time,
-                            prediction_time=prediction_time,
-                        )
-                        point = predictions.loc[(reference_time, prediction_time)].values
-                except IndexError:
-                    continue
+                if steps > 1:
+                    point = predictions.loc[(reference_time, prediction_time)].values
+
+        # see note at beginning of this function
+        if revert:
+            self.k = None
 
         return predictions
 

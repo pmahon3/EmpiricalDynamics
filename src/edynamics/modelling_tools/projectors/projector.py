@@ -1,6 +1,5 @@
 import abc
 
-import numpy as np
 import pandas as pd
 
 from edynamics.modelling_tools.embeddings import Embedding
@@ -38,8 +37,8 @@ class Projector(abc.ABC):
     def update_values(
             embedding: Embedding,
             predictions: pd.DataFrame,
-            current_time: np.datetime64,
-            prediction_time: np.datetime64,
+            current_time: pd.DatetimeIndex,
+            prediction_time: pd.DatetimeIndex,
     ) -> pd.DataFrame:
         """
         Updates a given predicted point in a predicted DATA block by replacing the variables with either the

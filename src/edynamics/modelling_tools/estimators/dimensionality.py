@@ -79,20 +79,19 @@ def dimensionality(
         pbar = tqdm(range(max_dimensions), leave=True, disable=verbose)
         for i in pbar:
             pbar.set_description("E = " + str(i + 1))
-            embedding_copy = deepcopy(embedding)
-            embedding_copy.observers = lags[: i + 1]
-            embedding_copy.compile()
-            points_ = embedding_copy.get_points(times=times)
+            embedding.observers = lags[: i + 1]
+            embedding.compile()
+            points_ = embedding.get_points(times=times)
 
             projector = KNearestNeighbours(
-                k=embedding_copy.dimension+1,
+                k=embedding.dimension+1,
                 norm=Minkowski(p=2),
                 kernel=Exponential(theta=0.0)
             )
 
             futures.append(
                 dimensionality_step(
-                    embedding=embedding_copy,
+                    embedding=embedding,
                     projector=projector,
                     target=target,
                     points=points_,

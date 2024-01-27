@@ -42,6 +42,8 @@ def nonlinearity(
         data=[None for _ in range(len(thetas))], index=thetas, columns=["rho"]
     )
 
+
+
     # Run predictions for each dimension
     futures = []
     if compute_pool is not None:
@@ -93,22 +95,16 @@ def nonlinearity_step(
 ) -> float:
     projector.kernel.theta = theta
 
-    # Projection inputs
+    # projection inputs
     x = embedding.get_points(times)
 
-    # Projection outputs
-    times = projector.build_prediction_index(
-        frequency=embedding.frequency,
-        index=times,
-        steps=steps,
-        step_size=step_size,
-    ).get_level_values(level=1)
-
-    y = embedding.get_points(times=times)
-
-    # Projection
+    # perform the projection
     y_hat = projector.project(embedding=embedding, points=x, steps=steps, step_size=step_size, leave_out=True)
 
+    # get actual values
+    y = embedding.get_points(times=y_hat.droplevel(0).index)
+
+    # return the correlation
     return y_hat.droplevel(level=0)[target].corr(y[target])
 
 

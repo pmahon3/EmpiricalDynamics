@@ -94,10 +94,12 @@ class WeightedLeastSquares(Projector):
         # if the time indices of the points to predict from are in the library, they can be excluded from the library
         # as well.
 
-        mask = embedding.library_times <= current_time
+
 
         if leave_out:
-            mask = ~embedding.library_times.isin(indices.droplevel(0)) & mask
+            mask = ~embedding.library_times.isin(indices.droplevel(0))
+        else:
+            mask = embedding.library_times <= current_time
 
         # y is the library of outputs, the Embedding points at time t + step_size
         X = embedding.block.loc[mask][:-step_size]

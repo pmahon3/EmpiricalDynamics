@@ -120,7 +120,8 @@ class Embedding:
         if not isinstance(observers, list) or \
                 not all(isinstance(observer, Observer) for observer in observers) or \
                 (not observers and compile_block):
-            raise TypeError(f"observers must be a list of Observer objects or compile_block must be false: Got {type(observers)} and {compile_block}")
+            raise TypeError(
+                f"observers must be a list of Observer objects or compile_block must be false: Got {type(observers)} and {compile_block}")
         if not isinstance(library_times, pd.DatetimeIndex):
             raise TypeError(f"library_times must be of type pd.DatetimeIndex. Got {type(library_times)}")
         if not isinstance(data.index, pd.DatetimeIndex):
@@ -176,6 +177,9 @@ class Embedding:
         # build the KDTree
         self.distance_tree = cKDTree(self.block.iloc[:-1])
 
+        # set dimensions
+        self.dimension = len(self.observers)
+
         logging.info(f"State space embedding compiled. Block size: {self.block.shape}")
 
     def get_points(self, times: Union[pd.DatetimeIndex, pd.Index]) -> pd.DataFrame:
@@ -217,7 +221,7 @@ class Embedding:
         for obs in observers:
             if obs.variable_name not in self.data.columns:
                 raise AttributeError(f"The observer {obs} is not valid for the data. {obs.variable_name}"
-                               f" not found in {self.data.columns}")
+                                     f" not found in {self.data.columns}")
 
         logging.info(msg="Setting observers...")
         self.observers = observers
@@ -226,12 +230,10 @@ class Embedding:
             logging.info(msg="Compiling...")
             self.compile()
 
-    def get_k_nearest_neighbours(
-            self, point: np.array, knn: int
-    ) -> List[int]:
+    def get_k_nearest_neighbours(self,
+                                 point: np.array, knn: int) -> List[int]:
         """
-        Returns the k nearest neighbours of the Embedding and their distances to the given embedded point The time
-        index of the neighbours is less than the given maximum time.
+        Returns the k nearest neighbours of the Embedding and their distances to the given embedded point.
 
         :param np.array point: the point for which we want the k nearest neighbours. The point should be a vector, i.e.
         a 1-D np.array.
@@ -242,6 +244,35 @@ class Embedding:
 
         logging.debug("Getting k nearest neighbours of: %s", point)
         dists, indices = self.distance_tree.query(point, k=knn)
+        return indices
+
+    def get_ball_point(self,
+                       point: np.array,
+                       radius: float,
+                       p: float = 2) -> List[bool]:
+        """
+        Returns indices of the Embedding within a radius of a ball centered at the given point.
+
+        :param np.array point: The point in the embedding space for which to find the ball point.
+        :param float radius: The radius of the ball in Euclidean space.
+        :param float p: The order of the Minkowski distance metric to be used. Defaults to 2, which corresponds to
+            Euclidean distance.
+        :return: A list of boolean values indicating whether each point in the embedding space falls within the
+            specified ball.
+        """
+        logging.debug("Getting ball point of: %s", point)
+        if not isinstance(point, np.ndarray):
+            raise TypeError("point must be a numpy array")
+
+        if point.ndim != 1:
+            raise ValueError("point must be a 1-dimensional array")
+        if len(point) != self.dimension:
+            raise ValueError("point must have the same dimension as the embedding")
+
+        indices = self.distance_tree.query_ball_point(x=point,
+                                                      r=radius,
+                                                      p=p)
+
         return indices
 
     def __str__(self):
