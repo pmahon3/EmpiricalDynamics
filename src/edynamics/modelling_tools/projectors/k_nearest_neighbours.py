@@ -1,5 +1,3 @@
-import warnings
-
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import cdist
@@ -7,7 +5,6 @@ from scipy.spatial.distance import cdist
 from edynamics.modelling_tools.embeddings import Embedding
 from edynamics.modelling_tools.kernels import Kernel, Exponential
 from edynamics.modelling_tools.norms import Norm, Minkowski
-from sklearn.neighbors import KNeighborsClassifier
 
 from .projector import Projector
 
@@ -88,7 +85,6 @@ class KNearestNeighbours(Projector):
             self.k = embedding.dimension + 1
             revert = True
 
-
         indices = self.build_prediction_index(
             frequency=embedding.frequency,
             index=points.index,
@@ -111,7 +107,7 @@ class KNearestNeighbours(Projector):
                 #
                 # check if the current point is in the embedding
                 try:
-                    embedding.block.loc[reference_time,:]
+                    embedding.block.loc[reference_time, :]
 
                     if leave_out:
                         knn_count = [2, self.k + 1]

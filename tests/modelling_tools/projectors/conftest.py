@@ -6,8 +6,8 @@ import cProfile
 import io
 import pstats
 
-from edynamics.modelling_tools.embeddings import Embedding
-from edynamics.modelling_tools.projectors import Projector
+from src.edynamics.modelling_tools.embeddings import Embedding
+from src.edynamics.modelling_tools.projectors import Projector
 
 from tests.utils import plot_error_histogram
 from ..conftest import sample_points

@@ -1,6 +1,6 @@
 import pytest
 
-from edynamics.modelling_tools.projectors import KNearestNeighbours
+from src.edynamics.modelling_tools.projectors import KNearestNeighbours
 
 from ..conftest import *
 
@@ -21,6 +21,7 @@ class TestSmoke:
     """
     Parameter and input validation, output validation, error handling tests for the KNearestNeighbours projector object.
     """
+    logging.info("<KNearestNeighbours> smoke testing...")
 
     # ---TESTS---------------------------------------------------------------------------------------------------------#
     # prediction index
@@ -61,6 +62,7 @@ class TestPerformance:
     """
     Forecasting performance tests for the KNearestNeighbours projector object.
     """
+    logging.info("<KNearestNeighbours> performance testing...")
 
     @pytest.mark.parametrize('steps, step_size',
                              [(1, 1),

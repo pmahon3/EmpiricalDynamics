@@ -1,6 +1,6 @@
 import pytest
 
-from edynamics.modelling_tools.projectors import WeightedLeastSquares
+from src.edynamics.modelling_tools.projectors import WeightedLeastSquares
 
 from ..conftest import *
 
@@ -17,6 +17,8 @@ def projector(embedding):
                          indirect=['data_set'],
                          scope="class")
 class TestSmoke:
+    logging.info("<WeightedLeastSquares> smoke testing...")
+
     @pytest.mark.parametrize('steps, step_size',
                              [(1, 1),
                               (1, 3),
@@ -56,6 +58,7 @@ class TestPerformance:
     """
     Forecasting performance tests for the KNearestNeighbours projector object.
     """
+    logging.info("<WeightedLeastSquares> performance testing...")
 
     @pytest.mark.parametrize('steps, step_size',
                              [(1, 1),
@@ -85,6 +88,7 @@ class TestPerformance:
                          indirect=['data_set'],
                          scope="class")
 class TestComplexity:
+    logging.info("<WeightedLeastSquares> complexity testing...")
 
     @pytest.mark.parametrize('steps, step_size',
                              [(1, 1),

@@ -1,13 +1,11 @@
 import pandas as pd
 import numpy as np
-import logging
 import pytest
-import os
 
 from typing import Callable, List
 
-from edynamics.modelling_tools.embeddings import Embedding
-from edynamics.modelling_tools.observers import Lag
+from src.edynamics.modelling_tools.embeddings import Embedding
+from src.edynamics.modelling_tools.observers import Lag
 
 
 def build_embedding(data_set: pd.DataFrame, n_lags: int, variable: str, split: float) -> Embedding:

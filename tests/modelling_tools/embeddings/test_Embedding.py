@@ -1,14 +1,16 @@
-import numpy as np
+import logging
+
 import pytest
 import pandas as pd
 
 from copy import deepcopy
 
-from edynamics.modelling_tools.embeddings import Embedding
-from edynamics.modelling_tools.observers import Lag
+from src.edynamics.modelling_tools.embeddings import Embedding
+from src.edynamics.modelling_tools.observers import Lag
 
 
 class TestEmbedding:
+    logging.info("<Embedding> smoke testing...")
 
     @pytest.fixture(scope="class")
     def library_times(self):

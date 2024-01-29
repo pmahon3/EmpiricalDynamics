@@ -6,10 +6,8 @@ import random
 
 import matplotlib.pyplot as plt
 
-from edynamics.modelling_tools.estimators import nonlinearity
-from edynamics.modelling_tools import Embedding
-
-from ..conftest import generate_test_index
+from src.edynamics.modelling_tools.estimators import nonlinearity
+from src.edynamics.modelling_tools.embeddings import Embedding
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +18,7 @@ logger = logging.getLogger(__name__)
                          indirect=['data_set'],
                          scope="class")
 class TestPerformance:
-
+    logging.info("<nonlinearity> performance testing...")
     @pytest.mark.parametrize('steps, step_size',
                              [(1, 1),
                               (5, 1),

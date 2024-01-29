@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from scipy.spatial import cKDTree
 
-from edynamics.modelling_tools.observers import Observer
+from edynamics.modelling_tools.observers import Observer, observer
 
 
 class Embedding:
@@ -117,15 +117,15 @@ class Embedding:
 
         if not isinstance(data, pd.DataFrame):
             raise TypeError(f"data must be of type pd.DataFrame. Got {type(data)}")
-        if not isinstance(observers, list) or \
-                not all(isinstance(observer, Observer) for observer in observers) or \
-                (not observers and compile_block):
-            raise TypeError(
-                f"observers must be a list of Observer objects or compile_block must be false: Got {type(observers)} and {compile_block}")
         if not isinstance(library_times, pd.DatetimeIndex):
             raise TypeError(f"library_times must be of type pd.DatetimeIndex. Got {type(library_times)}")
         if not isinstance(data.index, pd.DatetimeIndex):
             raise TypeError(f"data index must be a pd.DatetimeIndex. Got {type(data.index)}")
+        if compile_block:
+            if not isinstance(observers, list) and not all([isinstance(observer_, Observer) for observer_ in observers]):
+                raise TypeError(f"observers must be of type List[Observer]. Got {type(observers)}")
+            if len(observers) == 0:
+                raise TypeError(f"embedding cannot be compiled with no observers. Got {type(observers)}")
 
         self.data = data
         self.observers: List[Observer] = observers
