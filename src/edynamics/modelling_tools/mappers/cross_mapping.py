@@ -90,7 +90,6 @@ def _cross_map_step(
         knn_idxs = embedding_y.get_k_nearest_neighbours(
             embedding_y.get_points(time).values[0],
             knn=embedding_y.dimension,
-            max_time=max(embedding_y.library_times),
         )
         knn_times = embedding_y.block.index[knn_idxs]
 
