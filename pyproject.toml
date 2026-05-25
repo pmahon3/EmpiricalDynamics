@@ -1,22 +1,38 @@
 [build-system]
-requires = [
-    "setuptools>=61.0",
-    "numpy>=1.24.2",
-    "pandas>=1.5.3",
-    "ray>=2.2.0",
-    "scipy>=1.8.0",
-    "tqdm>=4.64.1"
-]
-
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "edynamics"
 version = "0.3.14"
 description = "Empirical dynamic modelling - modular, parallel, object-oriented"
-authors = [{name="Patrick Mahon", email="pmahon@sfu.ca"}]
-requires-python = ">=3.6"
-readme="README.md"
+authors = [{name = "Patrick Mahon", email = "pmahon@sfu.ca"}]
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = [
+    "python",
+    "edm",
+    "time series",
+    "forecasting",
+    "empirical dynamics",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Operating System :: Unix",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+]
+dependencies = [
+    "numpy>=1.24.2",
+    "pandas>=1.5.3",
+    "scipy>=1.8.0",
+    "tqdm>=4.64.1",
+    "ray>=2.2.0",
+    "torch>=2.0",
+]
 
 [tool.setuptools.packages.find]
-where=["src"]
+where = ["src"]
