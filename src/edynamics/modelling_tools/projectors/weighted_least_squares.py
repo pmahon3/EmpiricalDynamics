@@ -5,6 +5,7 @@ from typing import Optional, Tuple, List
 import numpy as np
 import pandas as pd
 import torch
+from scipy.spatial import distance_matrix as _scipy_distance_matrix
 
 from edynamics.modelling_tools.embeddings import Embedding
 from edynamics.modelling_tools.kernels import Exponential, Kernel
@@ -210,24 +211,51 @@ class WeightedLeastSquares(Projector):
             stochastic: bool,
             rng: np.random.Generator,
     ) -> pd.DataFrame:
-        """Same core algorithm with residual‑stats capture."""
-        predictions = pd.DataFrame(index=indices, columns=embedding.block.columns, dtype=float)
+        """Same core algorithm with residual-stats capture.
 
+        Hot path: collect each step's forecast into a row buffer and
+        build the DataFrame once at the end, rather than mutating
+        `predictions.loc[(t1, t2)] = x_next` inside the per-step loop
+        (which pays the .loc-assignment cost on every iteration and
+        triggers pandas' fragmentation tracking).  Similarly,
+        X_full/Y_full/valid are advanced via integer offsets into the
+        once-materialised ndarrays rather than `.iloc[1:]` rebuilds.
+        """
         current_time, prediction_time = indices[0]
         if leave_out:
             lib_times = embedding.library_times[~embedding.library_times.isin(indices.droplevel(0))]
         else:
             lib_times = embedding.library_times[embedding.library_times <= current_time]
         valid = lib_times.intersection(embedding.block.index)
-        block = embedding.block.loc[valid]
-        X_full = block.iloc[:-step_size]
-        Y_full = block.iloc[step_size:]
+        block_vals = embedding.block.loc[valid].values   # materialise once
+        # Distance computation needs the library timestamps for the
+        # norm's `times=` argument; cache the full sequence and slice
+        # via integer offset inside the loop.
+        valid_full = valid
 
         x = point0.copy()
+        n_cols = embedding.block.shape[1]
+        n_valid = len(valid_full)
+        forecast_rows = np.empty((steps, n_cols), dtype=float)
         for j in range(steps):
-            dist = self.norm.distance_matrix(embedding, x[None, :], valid)[:-step_size]
+            # At step j the prior implementation had X_full =
+            # block.iloc[:-step_size] then iloc[1:] applied j times,
+            # giving X = block_vals[j : n_valid - step_size]
+            # (length n_valid - step_size - j).  Y is the same length
+            # but shifted forward by step_size:
+            #   Y = block_vals[j + step_size : n_valid].
+            # valid (used for distance_matrix) is valid_full[j:]
+            # (length n_valid - j); the [-step_size] tail slice on the
+            # distance matrix then matches X / Y's length.
+            X_step = block_vals[j : n_valid - step_size]
+            Y_step = block_vals[j + step_size : n_valid]
+            # Distances are computed against the X side (rows j..n-step)
+            # of block_vals.  Going through self.norm.distance_matrix
+            # would re-do embedding.block.loc[v_step].values per call;
+            # use the already-materialised slice directly.
+            dist = _scipy_distance_matrix(X_step, x[None, :], p=self.norm.p)
             w = self.kernel.weigh(dist)
-            WX, Wy = w * X_full.values, w * Y_full.values
+            WX, Wy = w * X_step, w * Y_step
             C = np.linalg.lstsq(WX, Wy, rcond=None)[0]
             # residuals and stats -------------------------------------
             resid = Wy - WX @ C
@@ -243,17 +271,14 @@ class WeightedLeastSquares(Projector):
             if stochastic:
                 noise_ = rng.multivariate_normal(mean=np.zeros_like(x_next), cov=Sigma)
                 x_next += noise_
-            predictions.loc[(current_time, prediction_time)] = x_next
+            forecast_rows[j] = x_next
             if coeff_store is not None:
                 coeff_store[j] = torch.as_tensor(C)
-            # advance --------------------------------------------------
-            if j < steps - 1:
-                x = x_next
-                prediction_time = indices[j + 1][-1]
-                X_full = X_full.iloc[1:]
-                Y_full = Y_full.iloc[1:]
-                valid = valid[1:]
-        return predictions
+            # advance
+            x = x_next
+
+        return pd.DataFrame(forecast_rows, index=indices,
+                            columns=embedding.block.columns)
 
     # ------------------------------------------------------------------
     def _local_stats_from_weighted(

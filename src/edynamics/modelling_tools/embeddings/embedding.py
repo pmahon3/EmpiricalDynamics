@@ -161,21 +161,23 @@ class Embedding:
             raise Warning(f"Duplicate observers assigned to the embedding:\n\t{', '.join(map(str, self.observers))}\n\t"
                           f"This may result in unexpected behaviour.")
 
-        self.block = pd.DataFrame(
-            columns=[obs.observation_name for obs in self.observers],
-            index=self.library_times,
-        )
-
-        # build the embedding block
-        # try to keep observation functions vectorized
-
-        for obs in self.observers:
-            self.block[obs.observation_name] = obs.observe(data=self.data, times=self.library_times).values
-
+        # Build the embedding block column-by-column into a dict, then
+        # construct the DataFrame once.  The previous one-column-at-a-
+        # time assignment into a pre-allocated DataFrame triggered the
+        # pandas PerformanceWarning ('DataFrame is highly fragmented')
+        # and forced a full block copy on every observer.
+        block_cols = {
+            obs.observation_name: obs.observe(
+                data=self.data, times=self.library_times
+            ).values
+            for obs in self.observers
+        }
+        self.block = pd.DataFrame(block_cols, index=self.library_times)
         self.block.dropna(inplace=True)
 
-        # build the KDTree
-        self.distance_tree = cKDTree(self.block.iloc[:-1])
+        # KDTree wants an ndarray; passing a DataFrame here forces a
+        # pandas-internal copy.  .values is the underlying ndarray.
+        self.distance_tree = cKDTree(self.block.iloc[:-1].values)
 
         # set dimensions
         self.dimension = len(self.observers)
@@ -196,12 +198,13 @@ class Embedding:
         if self.observers is None or not self.observers:
             return self.data.loc[times]
 
-        points = pd.DataFrame(index=times, columns=[obs.observation_name for obs in self.observers])
-
-        for obs in self.observers:
-            points[obs.observation_name] = obs.observe(data=self.data, times=times).values
-
-        return points
+        # Same one-shot column-dict construction as compile() to avoid
+        # pandas fragmentation cost.
+        point_cols = {
+            obs.observation_name: obs.observe(data=self.data, times=times).values
+            for obs in self.observers
+        }
+        return pd.DataFrame(point_cols, index=times)
 
     def set_library(self, library_times: pd.DatetimeIndex) -> None:
         """
@@ -268,8 +271,13 @@ class Embedding:
                 self.library_times.equals(other.library_times)
         return False
 
-    def __hash__(self):
-        return hash((self.data, self.observers, self.library_times))
+    # Embedding holds a pd.DataFrame (self.data) which is not hashable,
+    # so we cannot meaningfully hash an Embedding.  Set __hash__ to None
+    # to mark the class explicitly unhashable; this makes the failure
+    # immediate (TypeError at hash() time) rather than at runtime inside
+    # the broken hash((self.data, ...)) implementation that used to live
+    # here.
+    __hash__ = None
 
     def __len__(self):
         return self.dimension
