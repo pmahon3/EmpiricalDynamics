@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from .observer import Observer
+from .base import Observer
 
 
 # todo: these need to be "vectorized"

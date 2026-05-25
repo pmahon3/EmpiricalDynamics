@@ -17,7 +17,7 @@ def test_observers():
 
 def test_kernels():
     from edynamics.modelling_tools.kernels import (                # noqa: F401
-        Kernel, Gaussian, Exponential, Epanechnikov, Tricubic, constant,
+        Kernel, Gaussian, Exponential, Epanechnikov, Tricubic, Constant,
     )
 
 

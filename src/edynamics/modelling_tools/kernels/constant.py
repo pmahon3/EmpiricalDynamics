@@ -2,7 +2,7 @@ from .kernel import Kernel
 import numpy as np
 
 
-class constant(Kernel):
+class Constant(Kernel):
     def __init__(self):
         super().__init__(theta=None)
 
