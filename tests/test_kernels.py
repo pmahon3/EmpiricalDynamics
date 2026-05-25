@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from edynamics.modelling_tools.kernels import (
-    Gaussian, Exponential, Epanechnikov, Tricubic,
+    Constant, Gaussian, Exponential, Epanechnikov, Tricubic,
 )
 
 
@@ -62,3 +62,11 @@ def test_tricubic_compactly_supported():
     assert w[0, 0] > 0
     # Tricubic is zero outside |d/theta| <= 1
     assert w[0, -1] == 0
+
+
+def test_constant_kernel(distances):
+    """The constant kernel ignores distance and returns all-ones."""
+    k = Constant()
+    w = k.weigh(distances)
+    assert w.shape == distances.shape
+    assert np.all(w == 1.0)

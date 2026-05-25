@@ -5,8 +5,21 @@ shared infrastructure; every projector/estimator test starts from one.
 """
 from __future__ import annotations
 
+import warnings
+
 import pandas as pd
 import pytest
+
+# The Projector.update_values implementation uses chained-assignment
+# (`predictions.loc[...][col] = value`) which pandas will refuse in
+# 3.0 under Copy-on-Write.  Silencing here so the test output is
+# readable; the production code needs to be rewritten to .loc[r, c]
+# form.  Logged as a follow-up in the test-coverage commit message.
+warnings.filterwarnings(
+    "ignore",
+    message="ChainedAssignmentError",
+    category=FutureWarning,
+)
 
 from edynamics.data_sets.lorenz import lorenz_data
 from edynamics.modelling_tools.embeddings import Embedding
@@ -19,11 +32,17 @@ def lorenz_df() -> pd.DataFrame:
     return lorenz_data()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def small_embedding(lorenz_df: pd.DataFrame) -> Embedding:
     """A compiled 3-coordinate Lorenz embedding suitable for fast tests.
 
     Uses 0-lag observers on (X, Y, Z) and a library of ~900 anchors.
+
+    Function-scoped: several callers (dimensionality, greedy_nearest_
+    neighbour) mutate embedding.observers in place; sharing the fixture
+    across tests would let one test's mutation leak into the next.
+    Rebuilding the Embedding (the costly part is compile()) is still
+    sub-second on this size, so function-scope is the right trade.
     """
     observers = [Lag("X", 0), Lag("Y", 0), Lag("Z", 0)]
     library_times = lorenz_df.index[100:1000]
