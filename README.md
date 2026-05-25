@@ -63,10 +63,12 @@ emb.compile()
 
 # 2. Set up a projector + fit per-anchor bandwidths
 from edynamics.modelling_tools.estimators import LocalGLSelector
-wls = WeightedLeastSquares(kernel=Gaussian(theta=1.0),
-                            residual_kernel=Gaussian(theta=1.0))
-sel = LocalGLSelector(theta_grid=..., sigma_grid=..., lwls=wls, C=...)
-sel.fit(emb)
+wls = WeightedLeastSquares(
+    kernel=Gaussian(theta=1.0, dim=emb.dimension),
+    residual_kernel=Gaussian(theta=1.0, dim=emb.dimension),
+)
+sel = LocalGLSelector(theta_grid=..., sigma_grid=..., lwls=wls, C=2.0)
+sel.fit(emb, library_times=emb.library_times[::10])
 
 # 3. Project / forecast
 result = wls.project(emb, ...)          # returns a RoseResult

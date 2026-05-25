@@ -33,7 +33,7 @@ def lorenz_data() -> pd.DataFrame:
     for i in range(num_steps):
         data[i + 1] = data[i] + _lorenz_integrator(data[i]) * dt
 
-    index = pd.date_range(start=pd.Timestamp.now().round(freq='H'), periods=num_steps + 1, freq='H')
+    index = pd.date_range(start=pd.Timestamp.now().round(freq='h'), periods=num_steps + 1, freq='h')
     data = pd.DataFrame(data=data, index=index, columns=['X', 'Y', 'Z'])
 
     return data
