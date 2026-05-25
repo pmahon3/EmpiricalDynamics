@@ -20,6 +20,7 @@ dist/
 htmlcov/
 docs/build/
 tests/report/
+report/
 
 # Virtual environments
 venv/
