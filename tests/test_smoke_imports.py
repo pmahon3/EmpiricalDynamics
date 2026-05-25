@@ -9,6 +9,12 @@ def test_top_level_imports():
     from edynamics.modelling_tools import Embedding, Lag           # noqa: F401
 
 
+def test_observers():
+    from edynamics.modelling_tools.observers import (              # noqa: F401
+        Observer, Lag, LagMovingAverage, ColumnObserver,
+    )
+
+
 def test_kernels():
     from edynamics.modelling_tools.kernels import (                # noqa: F401
         Kernel, Gaussian, Exponential, Epanechnikov, Tricubic, constant,

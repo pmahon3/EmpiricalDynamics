@@ -105,3 +105,29 @@ class LagMovingAverage(Observer):
 
     def __hash__(self):
         return hash((self.variable_name, self.tau, self.q))
+
+
+class ColumnObserver(Observer):
+    """Observer that reads one named column from a DataFrame at the
+    requested times.  Used by lifted-embedding constructions where the
+    'observation' is just a passthrough of an existing column."""
+
+    def __init__(self, observation_name: str, variable_name: str):
+        super().__init__(variable_name)
+        self.observation_name = observation_name
+
+    def observe(self, data: pd.DataFrame, times: pd.DatetimeIndex) -> pd.Series:
+        return data[self.variable_name].loc[times]
+
+    @property
+    def observation_times(self):
+        return None
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, ColumnObserver)
+            and other.variable_name == self.variable_name
+        )
+
+    def __hash__(self):
+        return hash(self.variable_name)

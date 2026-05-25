@@ -1,2 +1,2 @@
-from .observers import Lag, LagMovingAverage
 from .observer import Observer
+from .observers import ColumnObserver, Lag, LagMovingAverage
