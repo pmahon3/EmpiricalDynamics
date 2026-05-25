@@ -1,10 +1,6 @@
-from .kernel import Kernel
 import numpy as np
-import logging
 
-from copy import copy
-
-logger = logging.getLogger(__name__)
+from .kernel import Kernel
 
 
 class Exponential(Kernel):
