@@ -1,8 +1,0 @@
-Metadata-Version: 2.1
-Name: edynamics
-Version: 0.3.14
-Summary: Empirical dynamic modelling - modular, parallel, object-oriented
-Author: Patrick Mahon
-Author-email: Patrick Mahon <pmahon@sfu.ca>
-Requires-Python: >=3.6
-Description-Content-Type: text/markdown
