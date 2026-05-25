@@ -104,4 +104,4 @@ class LagMovingAverage(Observer):
         )
 
     def __hash__(self):
-        hash((self.variable_name, self.tau, self.q))
+        return hash((self.variable_name, self.tau, self.q))
