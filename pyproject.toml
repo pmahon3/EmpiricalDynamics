@@ -4,10 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "edynamics"
-version = "0.3.14"
+version = "0.4.0"
 description = "Empirical dynamic modelling - modular, parallel, object-oriented"
 authors = [{name = "Patrick Mahon", email = "pmahon@sfu.ca"}]
 readme = "README.md"
+license = {text = "MIT"}
 requires-python = ">=3.10"
 keywords = [
     "python",
@@ -33,6 +34,11 @@ dependencies = [
     "ray>=2.2.0",
     "torch>=2.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/pmahon3/EmpiricalDynamics"
+Source = "https://github.com/pmahon3/EmpiricalDynamics"
+Issues = "https://github.com/pmahon3/EmpiricalDynamics/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

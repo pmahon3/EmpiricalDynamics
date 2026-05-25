@@ -1,0 +1,42 @@
+# Run the pytest suite on every push to main and every PR.
+#
+# Catches regressions before they're tagged for release.  The publish.yml
+# workflow does NOT depend on this one (a tag push fires it independently),
+# but you should not push a tag if this workflow is red.
+
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          # Runtime deps are declared in pyproject; install them first
+          # then the package in editable mode without re-isolating the
+          # build env (faster + avoids redownloading the deps).
+          python -m pip install numpy pandas scipy tqdm torch ray pytest
+          python -m pip install -e . --no-build-isolation
+
+      - name: Run pytest
+        run: pytest tests/ -v

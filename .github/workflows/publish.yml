@@ -1,0 +1,77 @@
+# Build wheel + sdist and upload to PyPI on every vX.Y.Z tag push.
+#
+# One-time setup required on the GitHub repo:
+#
+#   Settings -> Secrets and variables -> Actions -> New repository secret
+#     name:  PYPI_API_TOKEN
+#     value: <PyPI token scoped to this project>
+#
+#   The token is generated at https://pypi.org/manage/account/token/ .
+#   Scope it to the `edynamics` project, not "Entire account", so a leak
+#   only affects this one package.
+#
+# To publish a release:
+#
+#   1. Bump the version in pyproject.toml ([project].version = "X.Y.Z").
+#   2. Update CHANGELOG.md with the entry for X.Y.Z.
+#   3. Commit + push to main.
+#   4. Tag the release:    git tag vX.Y.Z && git push origin vX.Y.Z
+#   5. This workflow fires; the package appears on PyPI within minutes.
+#
+# The tag MUST match the [project].version (without the leading 'v').
+# A safety check below refuses to publish if they disagree.
+
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+a[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+b[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+rc[0-9]+"
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/edynamics/
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"     # for stdlib tomllib in the verify step
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build twine
+
+      - name: Verify tag matches pyproject version
+        run: |
+          TAG="${GITHUB_REF##*/}"           # vX.Y.Z
+          TAG_VERSION="${TAG#v}"            # X.Y.Z
+          PYPROJECT_VERSION=$(python -c "import tomllib; \
+              print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          if [ "$TAG_VERSION" != "$PYPROJECT_VERSION" ]; then
+            echo "ERROR: tag $TAG_VERSION does not match pyproject.toml $PYPROJECT_VERSION" >&2
+            exit 1
+          fi
+          echo "tag $TAG_VERSION matches pyproject $PYPROJECT_VERSION"
+
+      - name: Build wheel and sdist
+        run: python -m build
+
+      - name: Verify metadata with twine
+        run: python -m twine check dist/*
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: python -m twine upload dist/*
