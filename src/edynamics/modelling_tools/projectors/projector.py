@@ -55,32 +55,58 @@ class Projector(abc.ABC):
             unobserved = [time for time in obs_times if time > current_time]
             observed = [time for time in obs_times if time <= current_time]
 
-            try:
-                data = pd.concat(
-                    [
-                        predictions.loc[current_time].loc[unobserved][obs.variable_name],
-                        embedding.data.loc[observed][obs.variable_name],
-                    ]
-                ).to_frame()
-            except KeyError as e:
-                if any(a not in predictions.loc[current_time].index for a in unobserved):
-                    offenders = [a for a in unobserved if a not in predictions.loc[current_time].index]
-                    print(f"The times {offenders} used to make observation {obs.observation_name} at time "
-                          f"{prediction_time} are not in the observed or previously predicted values. The step_size"
-                          f" likely exceeds the an observation lag size.")
-                    print(e)
+            # Build the data the observer needs.  Two sources:
+            #   - predicted values at any unobserved time (those exist in
+            #     `predictions` if and only if the variable is also a
+            #     column of `predictions`, i.e. it was a target of this
+            #     projection round);
+            #   - actual values from embedding.data otherwise (always
+            #     available, since embedding.data carries all variables
+            #     present in the raw input).
+            # The previous implementation tried to slice both sources
+            # uniformly and caught any KeyError, which silently left
+            # `data` undefined when the new observer referenced a
+            # variable not in `predictions.columns` (e.g. a candidate
+            # Lag('Y', -1) added on top of an embedding whose previous
+            # observers only targeted X).
+            pieces = []
+            if unobserved:
+                preds_at_current = predictions.loc[current_time]
+                if obs.variable_name in preds_at_current.columns:
+                    pieces.append(
+                        preds_at_current.loc[unobserved][obs.variable_name]
+                    )
+                else:
+                    # Variable not predicted this round; fall back to
+                    # observed values from embedding.data, even at
+                    # future times if they happen to be present.
+                    available = [t for t in unobserved if t in embedding.data.index]
+                    if available:
+                        pieces.append(embedding.data.loc[available][obs.variable_name])
+                    missing = [t for t in unobserved if t not in embedding.data.index]
+                    if missing:
+                        raise KeyError(
+                            f"observer {obs.observation_name} at prediction_time "
+                            f"{prediction_time} needs unobserved times {missing} "
+                            f"for variable {obs.variable_name!r}, which is neither "
+                            f"a prediction target nor available in embedding.data"
+                        )
+            if observed:
+                pieces.append(embedding.data.loc[observed][obs.variable_name])
 
+            data = pd.concat(pieces).to_frame() if pieces else pd.DataFrame(
+                columns=[obs.variable_name]
+            )
             data.sort_index(inplace=True)
-            hit = False
-
             if data.index.inferred_freq is not None:
                 data.index.freq = data.index.inferred_freq
             else:
                 data.index.freq = embedding.frequency
 
-            predictions.loc[(current_time, prediction_time)][
-                obs.observation_name
-            ] = obs.observe(data=data, times=pd.DatetimeIndex(data=[prediction_time])).values
+            predictions.loc[(current_time, prediction_time), obs.observation_name] = (
+                obs.observe(data=data,
+                            times=pd.DatetimeIndex(data=[prediction_time])).values
+            )
 
         return predictions
 

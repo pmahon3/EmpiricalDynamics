@@ -1,16 +1,13 @@
 """greedy_nearest_neighbour() smoke test.
 
-Until this commit greedy_nearest_neighbour() was entirely untested
-(21% coverage on estimators/observers.py).  It's a forward-stepwise
-observer selector that successively adds observers from a candidate
-pool, keeping those that increase prediction skill.
+Forward-stepwise observer selector that successively adds observers
+from a candidate pool, keeping those that increase prediction skill.
 
-Currently xfail: surfacing a real bug in
-projector.Projector.update_values that needs its own investigation.
-When called with a candidate Lag observer that has tau<0, the inner
-data-build try/except (projector.py:58-71) swallows a KeyError and
-proceeds with stale `data`, which leads to a missing-index KeyError
-when the observer's .observe() is invoked.  Tracked separately.
+Until commit b40ce0b this function was entirely untested (21% line
+coverage on estimators/observers.py).  Two tests added then xfailed,
+because they surfaced a real bug in Projector.update_values that
+silently swallowed a KeyError and left `data` stale.  Bug fixed in
+the immediately-following commit; the tests now run for real.
 """
 from __future__ import annotations
 
@@ -23,11 +20,6 @@ from edynamics.modelling_tools.observers import Lag
 from edynamics.modelling_tools.projectors import KNearestNeighbours
 
 
-@pytest.mark.xfail(
-    reason="bug in Projector.update_values when an observer has tau<0; "
-           "swallowed KeyError leaves data stale.  Tracked separately.",
-    raises=KeyError, strict=True,
-)
 def test_greedy_nearest_neighbour_returns_performance(small_embedding: Embedding):
     """The function mutates embedding.observers in place; returns a
     list of best-skill rho per round."""
@@ -53,11 +45,6 @@ def test_greedy_nearest_neighbour_returns_performance(small_embedding: Embedding
         assert -1.0 <= p <= 1.0
 
 
-@pytest.mark.xfail(
-    reason="bug in Projector.update_values when an observer has tau<0; "
-           "swallowed KeyError leaves data stale.  Tracked separately.",
-    raises=KeyError, strict=True,
-)
 def test_greedy_nearest_neighbour_with_early_stopping(small_embedding: Embedding):
     """An improvement_threshold above 0 should stop the search early
     once selection stops adding skill above that threshold."""
