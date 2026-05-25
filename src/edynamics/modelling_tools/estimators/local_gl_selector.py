@@ -301,38 +301,3 @@ def iterative_bootstrap(
     return embedding
 
 
-if __name__ == "__main__":
-    import numpy as np
-    import pandas as pd
-    from edynamics.data_sets.lorenz import lorenz_data
-    from edynamics.modelling_tools.observers import Lag
-
-    # 1) Generate Lorenz data
-    data = lorenz_data()
-
-    # 2) Initial embedding: use 3‐dim delay of X,Y,Z (i.e. no delay)
-    observers = [Lag("X", 0), Lag("Y", 0), Lag("Z", 0)]
-    library_times = data.index[100:1000]  # skip transients
-
-    # 3) PF‐GL grids
-    theta_grid = np.linspace(0.1, 5.0, 20)
-    sigma_grid = np.linspace(0.1, 5.0, 20)
-
-    # 4) Run the PF–Koopman bootstrap
-    # choose your initial bandwidth guesses
-    init_theta = 1.0
-    init_sigma = 1.0
-
-    lifted_embedding = iterative_bootstrap(
-        data=data,
-        observers=observers,
-        library_times=library_times,
-        theta_grid=np.linspace(0.1, 5, 20),
-        sigma_grid=np.linspace(0.1, 5, 20),
-        wls_kernel=Gaussian(theta=init_theta, dim=7),
-        wls_residual_kernel=Gaussian(theta=init_sigma, dim=7),
-    )
-
-    # 5) Inspect the lifted embedding
-    print("Lifted embedding block (first 5 rows):")
-    print(lifted_embedding.block.head())
