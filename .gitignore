@@ -1,3 +1,32 @@
+# IDE / editor state
 .idea/
-src/__pycache__
-*.pyc
+.vscode/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Packaging / build artifacts
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Test / docs / coverage caches
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+docs/build/
+tests/report/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# OS-level junk
+.DS_Store
+Thumbs.db
