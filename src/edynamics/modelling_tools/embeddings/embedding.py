@@ -5,8 +5,7 @@ import numpy as np
 import pandas as pd
 from scipy.spatial import cKDTree
 
-from edynamics.modelling_tools.observers import Observer, observer
-from edynamics.modelling_tools.kernels.kernel import Kernel
+from edynamics.modelling_tools.observers import Observer
 
 
 class Embedding:
@@ -246,36 +245,6 @@ class Embedding:
         logging.debug("Getting k nearest neighbours of: %s", point)
         dists, indices = self.distance_tree.query(point, k=knn)
         return indices
-
-    def get_ball_point(self,
-                       point: np.array,
-                       radius: float,
-                       p: float = 2) -> List[bool]:
-        """
-        Returns indices of the Embedding within a radius of a ball centered at the given point.
-
-        :param np.array point: The point in the embedding space for which to find the ball point.
-        :param float radius: The radius of the ball in Euclidean space.
-        :param float p: The order of the Minkowski distance metric to be used. Defaults to 2, which corresponds to
-            Euclidean distance.
-        :return: A list of boolean values indicating whether each point in the embedding space falls within the
-            specified ball.
-        """
-        logging.debug("Getting ball point of: %s", point)
-        if not isinstance(point, np.ndarray):
-            raise TypeError("point must be a numpy array")
-
-        if point.ndim != 1:
-            raise ValueError("point must be a 1-dimensional array")
-        if len(point) != self.dimension:
-            raise ValueError("point must have the same dimension as the embedding")
-
-        indices = self.distance_tree.query_ball_point(x=point,
-                                                      r=radius,
-                                                      p=p)
-
-        return indices
-
 
     def __str__(self):
         return f"Embedding object:\n" \
