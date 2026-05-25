@@ -1,15 +1,10 @@
-import torch
+from typing import Sequence, Tuple
+
 import numpy as np
 import pandas as pd
-from typing import Sequence, Tuple, List
+import torch
 
-from scipy.stats import multivariate_normal
-
-from edynamics import lorenz_data
-from edynamics.modelling_tools import Lag
 from edynamics.modelling_tools.embeddings import Embedding
-from edynamics.modelling_tools.kernels import Kernel, Gaussian
-from edynamics.modelling_tools.observers import ColumnObserver, Observer
 from edynamics.modelling_tools.projectors import WeightedLeastSquares
 
 
@@ -151,132 +146,5 @@ class LocalGLSelector:
         self.lwls.best_sigma_vals = self.sigma_star.cpu().numpy()
 
         return self.theta_star, self.sigma_star
-
-
-def iterative_bootstrap(
-        data: pd.DataFrame,
-        observers: List[Observer],
-        library_times: pd.DatetimeIndex,
-        theta_grid: np.ndarray,
-        sigma_grid: np.ndarray,
-        wls_kernel: Kernel,
-        wls_residual_kernel: Kernel,
-        C_pf: float = 2.0,
-        max_iters: int = 5,
-        tol_dial: float = 1e-3,
-        min_gap: float = 2.0,
-        holdout_frac: float = 0.1
-) -> Embedding:
-    """
-    Perform the PF–Koopman bootstrap loop to lift the embedding via residual modes.
-
-    Parameters
-    ----------
-    data
-      The raw time series.
-    observers
-      Initial list of Observer (e.g. delays).
-    library_times
-      Times to use for the embedding / PF anchor set.
-    theta_grid, sigma_grid
-      1D arrays of candidate bandwidths for the PF GL selector.
-    C_pf
-      Penalty constant in the PF GL criterion.
-    max_iters
-      Maximum number of bootstrap iterations.
-    tol_dial
-      Stop if |θ_k - θ_{k-1}| and |σ_k - σ_{k-1}| both < tol_dial.
-    min_gap
-      Stop if spectral gap λ_r / λ_{r+1} < min_gap.
-    holdout_frac
-      Fraction of library_times to hold out for optional forecasting check.
-
-    Returns
-    -------
-    embedding
-      The final lifted Embedding.
-      :param wls_residual_kernel:
-    """
-    # 1) initial embedding
-    embedding = Embedding(data=data, observers=observers,
-                          library_times=library_times, compile_block=True)
-    anchors = embedding.library_times
-
-    # optional hold‐out split
-    n_hold = int(len(anchors) * holdout_frac)
-    holdout = anchors[-n_hold:] if n_hold > 0 else pd.DatetimeIndex([])
-    train_anchors = anchors[:-n_hold] if n_hold > 0 else anchors
-
-    # initialize PF selector and WLS
-    wls = WeightedLeastSquares(kernel=wls_kernel, residual_kernel=wls_residual_kernel)
-    selector = LocalGLSelector(theta_grid, sigma_grid, lwls=wls, C=C_pf)
-
-    prev_theta, prev_sigma = None, None
-
-    for k in range(max_iters):
-        # --- PF step: fit local GL on train anchors ---
-        selector.fit(embedding, train_anchors)
-        theta_star = selector.theta_star
-        sigma_star = selector.sigma_star
-
-        # check dial convergence
-        if prev_theta is not None:
-            dθ = np.max(np.abs(theta_star - prev_theta))
-            dσ = np.max(np.abs(sigma_star - prev_sigma))
-            if dθ < tol_dial and dσ < tol_dial:
-                print(f"[iter {k}] dials converged (dθ={dθ:.2e}, dσ={dσ:.2e}) → stop")
-                break
-        prev_theta, prev_sigma = theta_star.copy_(), sigma_star.copy_()
-
-        # --- build PF matrix on anchors ---
-        X = embedding.block.loc[train_anchors].values  # (J, d)
-        J = len(train_anchors)
-        P = np.zeros((J, J), float)
-        for i in range(J):
-            # set this anchor's θ,σ
-            wls.kernel.theta = float(theta_star[i])
-            wls.residual_kernel.theta = float(sigma_star[i])
-            # weights from drift kernel only
-            dists = np.linalg.norm(X - X[i: i + 1], axis=1)
-            w = wls.kernel.weigh(dists)
-            if w.sum() <= 0:
-                P[i, :] = 1.0 / J
-            else:
-                P[i, :] = w / w.sum()
-
-        # --- eigen‐decomposition and spectral‐gap r ---
-        eigvals, eigvecs = np.linalg.eig(P.T)
-        # sort by descending |λ|
-        idx = np.argsort(-np.abs(eigvals))
-        eigvals, eigvecs = eigvals[idx], eigvecs[:, idx]
-        gaps = np.abs(eigvals[:-1] / (eigvals[1:] + 1e-16))
-        r = int(np.argmax(gaps) + 1)
-        gap_val = gaps[r - 1]
-        print(f"[iter {k}] spectral gap at r={r} is {gap_val:.2f}")
-
-        if gap_val < min_gap:
-            print(f"[iter {k}] gap {gap_val:.2f} < {min_gap} → stop")
-            break
-
-        # --- lifting: build new features ψ₁,…,ψᵣ ---
-        psi = eigvecs[:, :r].real  # (J, r)
-        modes_df = pd.DataFrame(psi, index=train_anchors,
-                                columns=[f"psi_{k + 1}" for k in range(r)])
-
-        # augment the embedding.block only on the train anchors
-        aug = embedding.block.loc[train_anchors].copy()
-        for col in modes_df.columns:
-            aug[col] = modes_df[col]
-
-        # --- optional: hold‐out forecast error check (not implemented here) ---
-
-        # --- rebuild embedding on train anchors with new observers ---
-        new_obs = [ColumnObserver(c) for c in aug.columns]
-        embedding = Embedding(data=aug,
-                              observers=new_obs,
-                              library_times=train_anchors,
-                              compile_block=True)
-
-    return embedding
 
 
