@@ -7,14 +7,9 @@ import pandas as pd
 import torch
 
 from edynamics.modelling_tools.embeddings import Embedding
-from edynamics.modelling_tools.kernels import Kernel
+from edynamics.modelling_tools.kernels import Exponential, Kernel
 from edynamics.modelling_tools.norms import Minkowski, Norm
 from edynamics.modelling_tools.projectors import Projector
-
-from dataclasses import dataclass
-import numpy as np
-import pandas as pd
-import torch
 
 
 @dataclass
@@ -98,9 +93,9 @@ class WeightedLeastSquares(Projector):
     ) -> None:
         super().__init__(
             norm=norm or Minkowski(p=2),
-            kernel=kernel or Kernel(theta=1.0),
+            kernel=kernel or Exponential(theta=1.0),
         )
-        self.residual_kernel: Kernel = residual_kernel or Kernel(theta=1.0)
+        self.residual_kernel: Kernel = residual_kernel or Exponential(theta=1.0)
 
         # To be filled by LocalGLSelector
         self.anchor_times: pd.DatetimeIndex | None = None
