@@ -6,6 +6,7 @@ import pandas as pd
 from scipy.spatial import cKDTree
 
 from edynamics.modelling_tools.observers import Observer, observer
+from edynamics.modelling_tools.kernels.kernel import Kernel
 
 
 class Embedding:
@@ -274,6 +275,7 @@ class Embedding:
                                                       p=p)
 
         return indices
+
 
     def __str__(self):
         return f"Embedding object:\n" \

@@ -1,302 +1,415 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Tuple, List
 
 import numpy as np
 import pandas as pd
 import torch
 
 from edynamics.modelling_tools.embeddings import Embedding
-from edynamics.modelling_tools.kernels import Exponential, Kernel
+from edynamics.modelling_tools.kernels import Kernel
 from edynamics.modelling_tools.norms import Minkowski, Norm
-from .projector import Projector
+from edynamics.modelling_tools.projectors import Projector
+
+from dataclasses import dataclass
+import numpy as np
+import pandas as pd
+import torch
 
 
 @dataclass
-class WLSResult:
-    predictions: pd.DataFrame
-    coefficients: Optional[torch.Tensor] = None   # (n_pts, steps, d, d)
-    covariances:  Optional[torch.Tensor] = None   # (n_pts, steps, d, d)
+class RoseResult:
+    predictions: pd.DataFrame  # MultiIndex: (origin_time, lead_time) → state-vector
+    coefficients: Optional[torch.Tensor] = None
+    covariances: Optional[torch.Tensor] = None
+    resid_means: Optional[torch.Tensor] = None
+    resid_eigvals: Optional[torch.Tensor] = None
+
+    def evaluate(
+        self,
+        embedding: Embedding,
+        persistence: bool = True
+    ) -> pd.DataFrame:
+        """
+        Compute MSE, RMSE, MAE, and Skill vs persistence by integer lead h,
+        pulling true states directly via embedding.get_points().
+        """
+        preds = self.predictions
+        # Extract origin & valid timestamps
+        origins = preds.index.get_level_values(0)
+        valids  = preds.index.get_level_values(1)
+
+        # Pull prediction & true arrays in lock-step
+        P  = preds.values                                  # (N, d)
+        X  = embedding.get_points(valids).values           # (N, d)
+        X0 = embedding.get_points(origins).values          # (N, d)
+
+        # Infer single‐step interval from the first forecast
+        step = valids[0] - origins[0]
+        # Compute integer lead for each row
+        leads = ((valids - origins) / step).astype(int)
+
+        records = []
+        for h in np.unique(leads):
+            idx = np.where(leads == h)[0]
+            Ph, Xh = P[idx], X[idx]
+
+            E = Ph - Xh
+            mse  = np.mean((E**2).sum(axis=1))
+            rmse = np.sqrt(mse)
+            mae  = np.mean(np.abs(E).sum(axis=1))
+
+            skill = np.nan
+            if persistence and h > 0:
+                P0h = X0[idx]
+                Ep  = P0h - Xh
+                mse_p = np.mean((Ep**2).sum(axis=1))
+                skill = 1 - mse/mse_p if mse_p > 0 else np.nan
+
+            records.append({
+                "lead":  h,
+                "MSE":   mse,
+                "RMSE":  rmse,
+                "MAE":   mae,
+                "Skill": skill,
+            })
+
+        return pd.DataFrame.from_records(records).set_index("lead")
+
 
 
 class WeightedLeastSquares(Projector):
     """
-    Locally weighted least-squares (S‐map style), now with an optional
-    `global_theta` that, if provided, forces every point to use that θ,
-    bypassing both “offline‐computed best‐θ” and “kernel‐voting”.
+    Locally weighted least-squares with *dual* bandwidths (θ, σ).
+
+    Drift‐kernel:       self.kernel  (θ)
+    Residual‐kernel:    self.residual_kernel  (σ)
+
+    You must have run LocalGLSelector.fit(…) first, which
+    populates self.anchor_times, self.best_theta_vals, self.best_sigma_vals.
     """
 
     def __init__(
-        self,
-        norm: Norm | None   = None,
-        kernel: Kernel | None = None,
-        *,
-        global_theta: Optional[float] = None
+            self,
+            *,
+            norm: Norm | None = None,
+            kernel: Kernel | None = None,
+            residual_kernel: Kernel | None = None,
     ) -> None:
         super().__init__(
-            norm   = norm   or Minkowski(p=2),
-            kernel = kernel or Exponential(theta=0.0),
+            norm=norm or Minkowski(p=2),
+            kernel=kernel or Kernel(theta=1.0),
         )
+        self.residual_kernel: Kernel = residual_kernel or Kernel(theta=1.0)
 
-        # --- New: if user sets `global_theta`, we will ignore per-anchor θ/voting ---
-        self.global_theta: Optional[float] = global_theta
+        # To be filled by LocalGLSelector
+        self.anchor_times: pd.DatetimeIndex | None = None
+        self.best_theta_vals: np.ndarray | None = None
+        self.best_sigma_vals: np.ndarray | None = None
 
-        # The following are set only if you call fit_best_thetas(...)
-        self.anchor_embeddings: Optional[np.ndarray] = None  # (N, d)
-        self.anchor_times:      Optional[pd.DatetimeIndex] = None
-        self.best_theta_vals:   Optional[np.ndarray] = None  # (N,)
-        self.voting_kernel:     Optional[Kernel] = None      # for new‐point θ‐prediction
-
-    # -------------------------------------------------------------------------
-    def fit_best_thetas(
-        self,
-        embedding: Embedding,
-        anchor_times: pd.DatetimeIndex,
-        residuals_arr: np.ndarray,
-        theta_grid: np.ndarray,
-        voting_kernel: Kernel
-    ) -> None:
-        """
-        Offline step: populate
-          • self.anchor_embeddings  (N, d)
-          • self.anchor_times       (N,)
-          • self.best_theta_vals    (N,)
-          • self.voting_kernel
-        so that later .project(...) knows how to pick θ for anchors (lookup) or new points (vote).
-        """
-        # (1) Gather anchor embeddings (N, d)
-        anchor_df = embedding.get_points(anchor_times)
-        if anchor_df.shape[0] != len(anchor_times):
-            raise ValueError(
-                "Some anchor_times not found in embedding. "
-                "Ensure your embedding is compiled over exactly those times."
-            )
-        self.anchor_embeddings = anchor_df.values   # array shape (N, d)
-        self.anchor_times      = anchor_times
-
-        # (2) Compute ‖r‖ over residuals_arr (N, K, d) → (N, K)
-        res_norms = np.linalg.norm(residuals_arr, axis=2)  # shape (N, K)
-
-        # (3) Find argmin along axis=1 → index (N,), then lookup θ
-        best_idx = np.nanargmin(res_norms, axis=1)         # shape (N,)
-        self.best_theta_vals = theta_grid[best_idx]        # shape (N,)
-
-        # (4) Store the kernel used for voting new points
-        self.voting_kernel = voting_kernel
-
-    # -------------------------------------------------------------------------
     def project(
-        self,
-        *,
-        embedding:  Embedding,
-        points:     pd.DataFrame,   # index = times, values = embedding vectors
-        steps:      int,
-        step_size:  int,
-        leave_out:  bool = True,
-        return_coefficients: bool = False,
-        use_innovations:     bool = False,
-        rng: Optional[np.random.Generator] = None,
-    ) -> WLSResult:
+            self,
+            *,
+            embedding: Embedding,
+            points: pd.DataFrame,
+            steps: int,
+            step_size: int,
+            leave_out: bool = True,
+            return_coefficients: bool = False,
+            return_residual_stats: bool = False,
+            use_innovations: bool = False,
+            rng: Optional[np.random.Generator] = None,
+    ) -> RoseResult:
         """
-        For each row in `points`:
-          1) If self.global_theta is not None:  θ_i = self.global_theta
-          2) else if timestamp ∈ self.anchor_times:  θ_i = self.best_theta_vals[...] (lookup)
-          3) else:  (new point) → vote θ via self.voting_kernel over self.anchor_embeddings
-
-        Then set self.kernel.theta = θ_i, run one-step WLS, collect predictions & coefficients.
+        Multi-step forecast. At each query time t:
+         1) Find nearest anchor in self.anchor_times
+         2) θ ← self.best_theta_vals[idx], σ ← self.best_sigma_vals[idx]
+         3) Run the standard WLS‐multi‐step with those kernels.
         """
-        # Ensure anchors & voting info are available if we need them
-        if self.global_theta is None:
-            if self.anchor_embeddings is None or self.best_theta_vals is None or self.voting_kernel is None:
-                raise RuntimeError(
-                    "You must call fit_best_thetas(...) first, or set global_theta in the constructor."
-                )
+        if self.anchor_times is None or self.best_theta_vals is None or self.best_sigma_vals is None:
+            raise RuntimeError(
+                "anchor_times and best_*_vals must be set (via LocalGLSelector) before calling project().")
 
-        # 1) Build the multi‐index (Current_Time, Prediction_Time) exactly as before
+        # build output index
         indices = self.build_prediction_index(
-            frequency = embedding.frequency,
-            index     = points.index,
-            steps     = steps,
-            step_size = step_size,
+            frequency=embedding.frequency,
+            index=points.index,
+            steps=steps,
+            step_size=step_size,
         )
 
-        d     = embedding.block.shape[1]
-        n_pts = len(points)
+        d, n_pts = embedding.block.shape[1], len(points)
+        coeff_t = torch.empty((n_pts, steps, d, d), dtype=torch.float64) if return_coefficients else None
+        cov_t = torch.empty((n_pts, steps, d, d), dtype=torch.float64) if use_innovations else None
+        mu_t = torch.empty((n_pts, steps, d), dtype=torch.float64) if return_residual_stats else None
+        eig_t = torch.empty((n_pts, steps, d), dtype=torch.float64) if return_residual_stats else None
 
-        # Prepare storage for coefficients & covariances
-        coeff_t = torch.empty((n_pts, steps, d, d), dtype=torch.float64) \
-                  if return_coefficients else None
-        cov_t   = torch.empty((n_pts, steps, d, d), dtype=torch.float64) \
-                  if use_innovations else None
-
-        all_pred: List[pd.DataFrame] = []
         rng = rng or np.random.default_rng()
+        all_pred: List[pd.DataFrame] = []
 
-        # 2) Loop over each point, pick θ_i according to the rules, then call WLS sub‐step
-        for i, (timestamp, point_vals) in enumerate(zip(points.index, points.values)):
-            # --- Decide which θ to use ---
-            if self.global_theta is not None:
-                # Option A: user has forced a single global θ for all points
-                θ_i = float(self.global_theta)
+        # Precompute numpy array of anchor times for distance
+        anchor_np = np.array(self.anchor_times.values, dtype="datetime64[ns]")
 
-            else:
-                # Option B: local anchor lookup or kernel‐voting
-                if timestamp in self.anchor_times:
-                    # anchor → look up
-                    idx_anchor = int(np.where(self.anchor_times == timestamp)[0][0])
-                    θ_i = float(self.best_theta_vals[idx_anchor])
-                else:
-                    # new point → vote
-                    x_t = point_vals  # (d,)
-                    diffs = self.anchor_embeddings - x_t[None, :]  # shape (N, d)
-                    dists = np.linalg.norm(diffs, axis=1)           # shape (N,)
-                    w = self.voting_kernel.weigh(dists)             # shape (N,)
-                    if np.all(w == 0):
-                        w = np.ones_like(w) / len(w)
-                    else:
-                        w = w / np.sum(w)
-                    θ_i = float(np.dot(w, self.best_theta_vals))
+        for i, (tstamp, x_np) in enumerate(zip(points.index, points.values)):
+            # 1) find nearest anchor index
+            #    convert both to numpy datetime64 for vectorized abs
+            t64 = np.datetime64(tstamp)
+            deltas = np.abs(anchor_np - t64)
+            idx_anchor = int(np.argmin(deltas))
 
-            # --- Set the kernel to this θ_i ---
-            self.kernel.theta = θ_i
+            # 2) pick θ & σ
+            theta_i = float(self.best_theta_vals[idx_anchor])
+            sigma_i = float(self.best_sigma_vals[idx_anchor])
 
-            # --- Prepare per‐point slices for coefficients and covariances ---
-            idx_slice  = indices[i*steps:(i+1)*steps]
-            coeff_view = coeff_t[i] if coeff_t is not None else None
-            cov_view   = cov_t[i]   if cov_t   is not None else None
+            # 3) set kernels
+            self.kernel.theta = theta_i
+            self.residual_kernel.theta = sigma_i
 
-            # --- Run the one‐step (or multi‐step) WLS for this point & θ_i ---
-            df_single = self._wls_multi_step(
-                embedding   = embedding,
-                point0      = point_vals.copy(),  # (d,)
-                indices     = idx_slice,
-                steps       = steps,
-                step_size   = step_size,
-                leave_out   = leave_out,
-                coeff_store = coeff_view,
-                cov_store   = cov_view,
-                stochastic  = use_innovations,
-                rng         = rng,
+            # 4) run multi-step WLS
+            block_slice = indices[i * steps: (i + 1) * steps]
+            df_one = self._wls_multi_step(
+                embedding=embedding,
+                point0=x_np.copy(),
+                indices=block_slice,
+                steps=steps,
+                step_size=step_size,
+                leave_out=leave_out,
+                coeff_store=coeff_t[i] if coeff_t is not None else None,
+                cov_store=cov_t[i] if cov_t is not None else None,
+                mu_store=mu_t[i] if mu_t is not None else None,
+                eig_store=eig_t[i] if eig_t is not None else None,
+                stochastic=use_innovations,
+                rng=rng,
             )
-            all_pred.append(df_single)
+            all_pred.append(df_one)
 
-        # 3) Concatenate per‐point predictions into a single DataFrame
-        preds = pd.DataFrame(index=indices, columns=embedding.block.columns)
+        # assemble
+        preds = pd.DataFrame(index=indices, columns=embedding.block.columns, dtype=float)
         for df in all_pred:
             preds.loc[df.index] = df.values
 
-        return WLSResult(
-            predictions = preds,
-            coefficients= coeff_t,
-            covariances = cov_t
+        return RoseResult(
+            predictions=preds,
+            coefficients=coeff_t,
+            covariances=cov_t,
+            resid_means=mu_t,
+            resid_eigvals=eig_t
         )
 
-    # -------------------------------------------------------------------------
+    # ---------------------------------------------------------------------
+    # Internal multi‑step routine
+    # ---------------------------------------------------------------------
     def _wls_multi_step(
-        self,
-        *,
-        embedding:   Embedding,
-        point0:      np.ndarray,
-        indices:     pd.MultiIndex,
-        steps:       int,
-        step_size:   int,
-        leave_out:   bool,
-        coeff_store: Optional[torch.Tensor],
-        cov_store:   Optional[torch.Tensor],
-        stochastic:  bool,
-        rng:         np.random.Generator,
+            self,
+            *,
+            embedding: Embedding,
+            point0: np.ndarray,
+            indices: pd.MultiIndex,
+            steps: int,
+            step_size: int,
+            leave_out: bool,
+            coeff_store: Optional[torch.Tensor],
+            cov_store: Optional[torch.Tensor],
+            mu_store: Optional[torch.Tensor],
+            eig_store: Optional[torch.Tensor],
+            stochastic: bool,
+            rng: np.random.Generator,
     ) -> pd.DataFrame:
-        """
-        (Unchanged from your prior implementation.)
-        """
-        predictions = pd.DataFrame(index=indices,
-                                   columns=embedding.block.columns,
-                                   dtype=float)
+        """Same core algorithm with residual‑stats capture."""
+        predictions = pd.DataFrame(index=indices, columns=embedding.block.columns, dtype=float)
 
         current_time, prediction_time = indices[0]
-
-        # library selection (leave‐one‐out or not)
         if leave_out:
             lib_times = embedding.library_times[~embedding.library_times.isin(indices.droplevel(0))]
         else:
             lib_times = embedding.library_times[embedding.library_times <= current_time]
-
         valid = lib_times.intersection(embedding.block.index)
         block = embedding.block.loc[valid]
-
         X_full = block.iloc[:-step_size]
-        Y_full = block.iloc[ step_size:]
+        Y_full = block.iloc[step_size:]
 
         x = point0.copy()
-
         for j in range(steps):
             dist = self.norm.distance_matrix(embedding, x[None, :], valid)[:-step_size]
-            w    = self.kernel.weigh(dist)
+            w = self.kernel.weigh(dist)
             WX, Wy = w * X_full.values, w * Y_full.values
-
-            C = np.linalg.lstsq(WX, Wy, rcond=None)[0]  # (d, d)
-
-            # compute raw residuals
-            resid = Wy - WX @ C  # shape (n_neighbors, d)
-
-            # ✱ compute weighted covariance with residual_kernel
-            Σ = self._local_cov_from_weighted(
-                WX=WX, Wy=Wy, C=C, W=W.sum(),
-                rids=resid,
-                residual_kernel=self.residual_kernel
-            )
-
+            C = np.linalg.lstsq(WX, Wy, rcond=None)[0]
+            # residuals and stats -------------------------------------
+            resid = Wy - WX @ C
+            Sigma, mu, eigvals = self._local_stats_from_weighted(rids=resid)
             if cov_store is not None:
-                cov_store[j] = torch.as_tensor(Σ)
-
+                cov_store[j] = torch.as_tensor(Sigma)
+            if mu_store is not None:
+                mu_store[j] = torch.as_tensor(mu)
+            if eig_store is not None:
+                eig_store[j] = torch.as_tensor(eigvals)
+            # forecast -------------------------------------------------
             x_next = x @ C
             if stochastic:
-                noise = rng.multivariate_normal(mean=np.zeros_like(x_next), cov=Σ)
-                x_next += noise
-
+                noise_ = rng.multivariate_normal(mean=np.zeros_like(x_next), cov=Sigma)
+                x_next += noise_
             predictions.loc[(current_time, prediction_time)] = x_next
-
             if coeff_store is not None:
                 coeff_store[j] = torch.as_tensor(C)
-
-            # advance
+            # advance --------------------------------------------------
             if j < steps - 1:
                 x = x_next
-                prediction_time = indices[j+1][-1]
+                prediction_time = indices[j + 1][-1]
                 X_full = X_full.iloc[1:]
                 Y_full = Y_full.iloc[1:]
-                valid   = valid[1:]
-
+                valid = valid[1:]
         return predictions
 
-    # -------------------------------------------------------------------------
-    @staticmethod
-    def _local_cov_from_weighted(
-            WX: np.ndarray,
-            Wy: np.ndarray,
-            C: np.ndarray,
-            W: float,
+    # ------------------------------------------------------------------
+    def _local_stats_from_weighted(
+            self,
             *,
-            rids: np.ndarray,  # ✱ the raw residuals (n_neighbors, d)
-            residual_kernel: Kernel  # ✱ the new kernel
-    ) -> np.ndarray:
-        """
-        Compute Σ = (1/W_r) ∑ w_drift_i * g_resid(||rids[i]||) * (rids[i] rids[i].T)
-        where:
-          - WX, Wy, W are from the drift fit,
-          - rids are the raw residual vectors,
-          - residual_kernel.weigh(distances) gives g_resid.
-        """
-        # drift weights W_drift were already built into WX/Wy normalization
-
-        # compute residual weights g_resid
-        rnorms = np.linalg.norm(rids, axis=1)  # (n_neighbors,)
-        w_resid = residual_kernel.weigh(rnorms)  # (n_neighbors,)
+            rids: np.ndarray,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Compute (Sigma, mu, eigvals) using the *current* residual_kernel weights."""
+        rnorms = np.linalg.norm(rids, axis=1)
+        w_resid = self.residual_kernel.weigh(rnorms)
         W_resid = w_resid.sum()
+        mu = np.average(rids, axis=0, weights=w_resid)
+        r_center = rids - mu[None, :]
+        Sigma = (r_center * w_resid[:, None]).T @ r_center / (W_resid + 1e-12)
+        eigvals = np.linalg.eigvalsh(Sigma)
+        return Sigma, mu, eigvals
 
-        # center residuals by weighted mean
-        mean_r = np.average(rids, axis=0, weights=w_resid)
-        r_centered = rids - mean_r[None, :]
 
-        # weighted covariance
-        return (r_centered * w_resid[:, None]).T @ r_centered / W_resid
+if __name__ == "__main__":
+    import numpy as np
+    import pandas as pd
+    import torch
+    import matplotlib.pyplot as plt
+    import matplotlib
+
+    matplotlib.use('TkAgg')  # Use TkAgg backend for plotting
+
+    from edynamics.modelling_tools.embeddings import Embedding
+    from edynamics.modelling_tools.kernels import Gaussian
+    from edynamics.modelling_tools.observers import Lag
+    from edynamics.modelling_tools.projectors import WeightedLeastSquares
+    from edynamics.data_sets.lorenz import lorenz_data
+    from edynamics.modelling_tools.estimators import LocalGLSelector
+
+
+    def plot_bandwidth_trajectory(anchors, theta_star, sigma_star):
+        """
+        Plot θ(t) and σ(t) over time for the given anchors and selected bandwidths.
+
+        Parameters
+        ----------
+        anchors : sequence of datetime-like
+            Anchor times corresponding to each θ and σ.
+        theta_star : array-like or torch.Tensor, shape (J,)
+            Selected drift bandwidths.
+        sigma_star : array-like or torch.Tensor, shape (J,)
+            Selected diffusion bandwidths.
+        """
+        # Convert inputs to numpy arrays
+        times = np.array(anchors)
+        if hasattr(theta_star, 'cpu'):
+            theta = theta_star.cpu().numpy()
+        else:
+            theta = np.array(theta_star)
+        if hasattr(sigma_star, 'cpu'):
+            sigma = sigma_star.cpu().numpy()
+        else:
+            sigma = np.array(sigma_star)
+
+        plt.figure(figsize=(12, 6))
+        plt.plot(times, theta, marker='o', markersize=2, label=r'$\theta(t)$')
+        plt.plot(times, sigma, marker='x', markersize=2, label=r'$\sigma(t)$')
+        plt.xlabel('Time')
+        plt.ylabel('Bandwidth value')
+        plt.title('Time series of selected drift (θ) and diffusion (σ) bandwidths')
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+
+    # 1) Generate the Lorenz data
+    data = lorenz_data()
+
+    # 2) Define observers: a 0-lag observer for each coordinate
+    observers = [Lag("X", 0), Lag("Y", 0), Lag("Z", 0)]
+
+    # 3) Choose library times (skip first 100 to let dynamics settle)
+    library_times = data.index[100:1000]
+
+    # 4) Build and compile the embedding
+    embedding = Embedding(
+        data=data,
+        observers=observers,
+        library_times=library_times,
+        compile_block=True
+    )
+
+    # 5) Select a subset of anchors to tune (every 10th library point)
+    anchors = embedding.library_times[::5]
+
+    # 6) Instantiate the WLS projector (no global θ/σ)
+    wls = WeightedLeastSquares(
+        kernel=Gaussian(theta=1.0, dim=embedding.dimension),
+        residual_kernel=Gaussian(theta=1.0, dim=embedding.dimension),
+    )
+
+    # 7) Create a coarse candidate grid for testing
+    theta_grid = np.logspace(-1, 1.5, 60)  # from 10⁻¹=0.1 up to 10^1.5≈31.6
+    sigma_grid = np.logspace(-1, 1.5, 60)
+
+    selector = LocalGLSelector(
+        theta_grid=theta_grid,
+        sigma_grid=sigma_grid,
+        lwls=wls,
+        C=2.0,
+        device=torch.device('cpu'),
+        dtype=torch.float64
+    )
+
+    # 8) Fit the selector to find (θ*,σ*) at each anchor
+    theta_star, sigma_star = selector.fit(embedding, anchors)
+
+    # 8.1) Plot the trajectory of (θ*, σ*) over time
+    plot_bandwidth_trajectory(anchors, theta_star, sigma_star)
+    plt.savefig("./bandwidth_trajectory.png", dpi=300)
+
+    print("Selected θ values:", theta_star)
+    print("Selected σ values:", sigma_star)
+
+    # Sanity-check: no NaNs
+    assert not torch.isnan(theta_star).any(), "Found NaN in θ*"
+    assert not torch.isnan(sigma_star).any(), "Found NaN in σ*"
+
+    # 9) Forecasting: pick the last 200 points for prediction
+    H = 5
+    forecast_times = data.index[-200:-H]
+    qry = embedding.get_points(forecast_times)
+
+    # 10) Run multi-step forecast with the pointwise-tuned WLS
+    result = wls.project(
+        embedding=embedding,
+        points=qry,
+        steps=H,
+        step_size=1,
+    )
+
+    # 11) Inspect the first few predictions
+    print(result.predictions.head())
+
+    # 12) Check shape: should be (len(forecast_times)*H, 3)
+    expected_rows = len(forecast_times) * H
+    assert result.predictions.shape == (expected_rows, 3)
+
+    # ──────────────────────────────────────────────────────────────────────
+    # 13) Build truth DataFrame at the exact valid times via the embedding
+    valid_times = result.predictions.index.get_level_values(1)
+    # get_points returns a DataFrame indexed by those times,
+    # with exactly the same columns as your predictions
+    truth = embedding.get_points(valid_times)
+
+    # 14) Evaluate forecast skill (MSE, RMSE, MAE, Skill vs persistence)
+    metrics = result.evaluate(embedding)
+    print("\nForecast Skill Metrics by Lead:\n", metrics)
+
+

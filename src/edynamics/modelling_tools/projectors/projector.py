@@ -1,6 +1,7 @@
 import abc
 
 import pandas as pd
+import numpy as np
 
 from edynamics.modelling_tools.embeddings import Embedding
 from edynamics.modelling_tools.kernels import Kernel

@@ -8,6 +8,8 @@ from edynamics.modelling_tools.norms import Norm, Minkowski
 
 from .projector import Projector
 
+pd.options.mode.chained_assignment = None # default='warn'
+
 
 class KNearestNeighbours(Projector):
     """
